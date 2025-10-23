@@ -122,24 +122,21 @@ int x_shwcr()
     return 0;
 }
 
-/* x_keyck() - Return non-zero if a key is waiting. */
-int x_keyck()
+int x_conin() /* Console input is available wait */
 {
-    return (bdos(11) & 0xFF);
+    return (bdos(1) & 0xFF);
+}
+
+int x_conout(code) /* Console output */
+int code;
+{
+    return bdos(2, code);
 }
 
 /* x_keyrd() - Read raw key code without waiting. */
 int x_keyrd()
 {
     return (bdos(6, 0xFF) & 0xFF);
-}
-
-/* x_keygt() - Fetch next key if available, else return 0. */
-int x_keygt()
-{
-    if (!x_keyck())
-        return 0;
-    return x_keyrd();
 }
 
 /* x_isesc(code) - Return non-zero if code is ESC. */

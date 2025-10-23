@@ -39,16 +39,16 @@ int x_puts();  /* Write zero-terminated string */
 int x_numpr(); /* Print signed integer in decimal */
 
 /* Cursor and screen control */
-int x_curmv(row, col);  /* Move cursor to row,col */
-int x_clrsc();  /* Clear screen and reset attributes */
-int x_hidcr();  /* Hide cursor */
-int x_shwcr();  /* Show cursor */
-int x_erseol(); /* Erase from cursor to end of line */
+int x_curmv(row, col); /* Move cursor to row,col */
+int x_clrsc();         /* Clear screen and reset attributes */
+int x_hidcr();         /* Hide cursor */
+int x_shwcr();         /* Show cursor */
+int x_erseol();        /* Erase from cursor to end of line */
 
 /* Keyboard input functions */
-int x_keyck(); /* Check if key is waiting */
-int x_keyrd(); /* Read raw key code */
-int x_keygt(); /* Get next key if available */
+int x_conin(); /* Console input is available wait */
+int x_conout(code); /* Console output */
+int x_keyrd(); /* Read raw key code no waiting */
 
 /* Key code test functions */
 int x_isesc(code);   /* Test if code is ESC */
