@@ -34,8 +34,6 @@ int bdos();
 int bios();
 
 /* Terminal output functions */
-int x_putch(); /* Output single character */
-int x_puts();  /* Write zero-terminated string */
 int x_numpr(); /* Print signed integer in decimal */
 
 /* Cursor and screen control */

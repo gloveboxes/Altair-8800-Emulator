@@ -33,22 +33,6 @@
 
 #include "dxterm.h"
 
-/* x_putch(c) - Output single character via BIOS console. */
-int x_putch(c)
-int c;
-{
-    return bios(4, c);
-}
-
-/* x_puts(s) - Write zero-terminated string to console. */
-int x_puts(s)
-char *s;
-{
-    while (*s)
-        x_putch(*s++);
-    return 0;
-}
-
 /* x_numpr(n) - Print signed integer in decimal form. */
 int x_numpr(n)
 int n;
@@ -58,13 +42,13 @@ int n;
 
     if (n == 0)
     {
-        x_putch('0');
+        putchar('0');
         return 0;
     }
 
     if (n < 0)
     {
-        x_putch('-');
+        putchar('-');
         n = -n;
     }
 
@@ -76,7 +60,7 @@ int n;
     }
 
     while (i--)
-        x_putch(buf[i]);
+        putchar(buf[i]);
 
     return 0;
 }
@@ -86,22 +70,14 @@ int x_curmv(row, col)
 int row;
 int col;
 {
-    x_putch(XK_ESC);
-    x_puts("[");
-    x_numpr(row);
-    x_puts(";");
-    x_numpr(col);
-    x_puts("H");
+    printf("%c[%d;%dH", XK_ESC, row, col);
     return 0;
 }
 
 /* x_clrsc() - Clear screen and reset attributes. */
 int x_clrsc()
 {
-    x_putch(XK_ESC);
-    x_puts("[2J");
-    x_putch(XK_ESC);
-    x_puts("[0m");
+    printf("%c[2J%c[0m", XK_ESC, XK_ESC);
     x_curmv(1, 1);
     return 0;
 }
@@ -109,16 +85,14 @@ int x_clrsc()
 /* x_hidcr() - Hide the terminal cursor. */
 int x_hidcr()
 {
-    x_putch(XK_ESC);
-    x_puts("[?25l");
+    printf("%c[?25l", XK_ESC);
     return 0;
 }
 
 /* x_shwcr() - Show the terminal cursor. */
 int x_shwcr()
 {
-    x_putch(XK_ESC);
-    x_puts("[?25h");
+    printf("%c[?25h", XK_ESC);
     return 0;
 }
 
@@ -192,25 +166,20 @@ int code;
 int x_setcol(code)
 int code;
 {
-    x_putch(XK_ESC);
-    x_puts("[");
-    x_numpr(code);
-    x_puts("m");
+    printf("%c[%dm", XK_ESC, code);
     return 0;
 }
 
 /* x_rstcol() - Reset all color and text attributes. */
 int x_rstcol()
 {
-    x_putch(XK_ESC);
-    x_puts("[0m");
+    printf("%c[0m", XK_ESC);
     return 0;
 }
 
 /* x_erseol() - Erase from cursor to end of line. */
 int x_erseol()
 {
-    x_putch(XK_ESC);
-    x_puts("[K");
+    printf("%c[K", XK_ESC);
     return 0;
 }

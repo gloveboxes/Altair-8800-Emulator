@@ -51,37 +51,6 @@ int g_init()
     return 0;
 }
 
-/* Draw border around the game board */
-int g_border()
-{
-    int row, col;
-
-    /* Top border */
-    x_curmv(1, 1);
-    x_putch('+');
-    for (col = 2; col < BOARD_COLS + 1; col++)
-        x_putch('-');
-    x_putch('+');
-
-    /* Side borders */
-    for (row = 2; row < BOARD_ROWS + 1; row++)
-    {
-        x_curmv(row, 1);
-        x_putch('|');
-        x_curmv(row, BOARD_COLS + 2);
-        x_putch('|');
-    }
-
-    /* Bottom border */
-    x_curmv(BOARD_ROWS + 2, 1);
-    x_putch('+');
-    for (col = 2; col < BOARD_COLS + 1; col++)
-        x_putch('-');
-    x_putch('+');
-
-    return 0;
-}
-
 /* Clear the game board area */
 int g_clrbd()
 {
@@ -122,7 +91,7 @@ int g_draw()
     for (row = 0; row < BOARD_ROWS; row++)
     {
         x_curmv(row + 1, 1); /* +1 to start at row 1 */
-        x_puts(gboard[row]);
+        puts(gboard[row]);
     }
 
     return 0;
@@ -142,7 +111,7 @@ char ch;
 }
 
 /* Check if direction key changed */
-int newdir(c, direction)
+int chkdir(c, direction)
 char c;
 int *direction;
 {
@@ -188,7 +157,7 @@ int *direction;
     {
         /* Clear old ball position on screen */
         x_curmv(ballrow + 1, ballcol + 1); /* +1 to account for single border */
-        x_putch(' ');
+        putchar(' ');
 
         /* Update ball position in array */
         g_setpt(ballrow, ballcol, ' ');
@@ -202,18 +171,12 @@ int *direction;
 
         /* Draw new ball position on screen */
         x_curmv(ballrow + 1, ballcol + 1); /* +1 to account for single border */
-        x_putch('O');
+        putchar('O');
     }
 
     /* Show direction at bottom of screen */
     x_curmv(BOARD_ROWS + 2, 1);
-    x_puts("Direction: ");
-    x_numpr(*direction);
-    x_puts("    Position: (");
-    x_numpr(ballrow);
-    x_puts(",");
-    x_numpr(ballcol);
-    x_puts(")    ");
+    printf("Direction: %d, Position: (%d,%d)           ", *direction, ballrow, ballcol);
 
     return 0;
 }
@@ -249,7 +212,7 @@ main()
             break;
         }
 
-        if (!x_tmrexp(0) || newdir(c, &direction))
+        if (!x_tmrexp(0) || chkdir(c, &direction))
         {
             upd_disp(&direction);
             x_tmrset(0, 100); /* Reset timer 0 for another 100 ms */
@@ -259,7 +222,7 @@ main()
     /* Cleanup - restore cursor and clear screen */
     x_shwcr();
     x_clrsc();
-    x_puts("Game exited. Thank you for playing!\r\n");
+    puts("Game exited. Thank you for playing!\r\n");
 
     return 0;
 }
