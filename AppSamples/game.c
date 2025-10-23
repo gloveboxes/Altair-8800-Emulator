@@ -201,7 +201,7 @@ main()
     /* Draw initial board */
     g_draw();
 
-    x_tmrset(0, 100); /* Set timer 0 for 100 ms */
+    x_tmrset(0, 50); /* Set timer 0 for 50 ms */
 
     while (1)
     {
@@ -215,7 +215,7 @@ main()
         if (!x_tmrexp(0) || chkdir(c, &direction))
         {
             upd_disp(&direction);
-            x_tmrset(0, 100); /* Reset timer 0 for another 100 ms */
+            x_tmrset(0, 50); /* Reset timer 0 for another 50 ms */
         }
     }
 
