@@ -159,15 +159,9 @@ int *direction;
         x_curmv(ballrow + 1, ballcol + 1); /* +1 to account for single border */
         putchar(' ');
 
-        /* Update ball position in array */
-        g_setpt(ballrow, ballcol, ' ');
-
         /* Update ball position */
         ballrow = newrow;
         ballcol = newcol;
-
-        /* Set new ball position in array */
-        g_setpt(ballrow, ballcol, 'O');
 
         /* Draw new ball position on screen */
         x_curmv(ballrow + 1, ballcol + 1); /* +1 to account for single border */
