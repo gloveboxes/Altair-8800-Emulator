@@ -227,11 +227,7 @@ static void terminal_write(uint8_t c)
 {
     c &= ASCII_MASK_7BIT; // take first 7 bits (127 ascii chars) only and discard 8th bit.
 
-    // This logic is to surpress echoing of characters that were typed on the web console
-    if (!terminal_should_suppress_output_character())
-    {
-        publish_message(&c, 1);
-    }
+    publish_message(&c, 1);
 }
 
 static inline uint8_t sense(void)

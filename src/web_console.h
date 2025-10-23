@@ -45,7 +45,6 @@ void publish_message(const void *application_message, size_t application_message
 void enqueue_terminal_input_character(char character);
 char dequeue_terminal_input_character(void);
 void clear_terminal_input_queue(void);
-bool terminal_should_suppress_output_character(void);
 bool terminal_enqueue_input_command(const char *characters, size_t length);
 
 // =============================================================================

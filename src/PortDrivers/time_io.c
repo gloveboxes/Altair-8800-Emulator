@@ -56,7 +56,7 @@ size_t time_output(int port, uint8_t data, char *buffer, size_t buffer_length)
         case 24: // Timer 0 - Set milliseconds timer high byte (bits 15-8)
         case 26: // Timer 1 - Set milliseconds timer high byte (bits 15-8)
         case 28: // Timer 2 - Set milliseconds timer high byte (bits 15-8)
-            if (timer_idx >= 0)
+            if (timer_idx >= 0 && timer_idx < NUM_MS_TIMERS)
             {
                 ms_timer_delays[timer_idx] = (ms_timer_delays[timer_idx] & 0x00FF) | ((uint16_t)data << 8);
             }
@@ -64,7 +64,7 @@ size_t time_output(int port, uint8_t data, char *buffer, size_t buffer_length)
         case 25: // Timer 0 - Set milliseconds timer low byte (bits 7-0) and start timer
         case 27: // Timer 1 - Set milliseconds timer low byte (bits 7-0) and start timer
         case 29: // Timer 2 - Set milliseconds timer low byte (bits 7-0) and start timer
-            if (timer_idx >= 0)
+            if (timer_idx >= 0 && timer_idx < NUM_MS_TIMERS)
             {
                 ms_timer_delays[timer_idx] = (ms_timer_delays[timer_idx] & 0xFF00) | data;
 
@@ -110,7 +110,7 @@ uint8_t time_input(uint8_t port)
         case 28: // Timer 2 - Has milliseconds timer expired (same as case 29)
         case 29: // Timer 2 - Has milliseconds timer expired
         {
-            if (timer_idx >= 0)
+            if (timer_idx >= 0 && timer_idx < NUM_MS_TIMERS)
             {
                 uint64_t target_time = ms_timer_targets[timer_idx];
 

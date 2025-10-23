@@ -47,7 +47,6 @@ typedef struct
     size_t tail;
     size_t count;
     pthread_mutex_t mutex;
-    size_t suppress_remaining;
 } terminal_input_queue_t;
 
 // =============================================================================
@@ -64,12 +63,11 @@ static output_buffer_t output_buffer = {
 
 // Terminal input queue
 static terminal_input_queue_t terminal_input_queue = {
-    .buffer             = {0},
-    .head               = 0,
-    .tail               = 0,
-    .count              = 0,
-    .mutex              = PTHREAD_MUTEX_INITIALIZER,
-    .suppress_remaining = 0,
+    .buffer = {0},
+    .head   = 0,
+    .tail   = 0,
+    .count  = 0,
+    .mutex  = PTHREAD_MUTEX_INITIALIZER,
 };
 
 // WebSocket client management
@@ -453,7 +451,7 @@ static inline size_t terminal_queue_capacity(void)
 }
 
 /// <summary>
-/// Add character to terminal input queue (without echo suppression)
+/// Add character to terminal input queue
 /// </summary>
 /// <param name="character">Character to enqueue</param>
 void enqueue_terminal_input_character(char character)
@@ -470,7 +468,6 @@ void enqueue_terminal_input_character(char character)
     terminal_input_queue.buffer[terminal_input_queue.tail] = character;
     terminal_input_queue.tail                              = (terminal_input_queue.tail + 1) % capacity;
     terminal_input_queue.count++;
-    // Note: No echo suppression for single character enqueue
 
     pthread_mutex_unlock(&terminal_input_queue.mutex);
 }
@@ -510,36 +507,16 @@ char dequeue_terminal_input_character(void)
 void clear_terminal_input_queue(void)
 {
     pthread_mutex_lock(&terminal_input_queue.mutex);
-    terminal_input_queue.head               = 0;
-    terminal_input_queue.tail               = 0;
-    terminal_input_queue.count              = 0;
-    terminal_input_queue.suppress_remaining = 0;
+    terminal_input_queue.head  = 0;
+    terminal_input_queue.tail  = 0;
+    terminal_input_queue.count = 0;
     pthread_mutex_unlock(&terminal_input_queue.mutex);
 }
 
-/// <summary>
-/// Determine if the next output character should be suppressed
-/// </summary>
-/// <returns>true when output should be suppressed</returns>
-bool terminal_should_suppress_output_character(void)
-{
-    bool should_suppress = false;
 
-    pthread_mutex_lock(&terminal_input_queue.mutex);
-
-    if (terminal_input_queue.suppress_remaining > 0)
-    {
-        should_suppress = true;
-        terminal_input_queue.suppress_remaining--;
-    }
-
-    pthread_mutex_unlock(&terminal_input_queue.mutex);
-
-    return should_suppress;
-}
 
 /// <summary>
-/// Enqueue characters for the CPU while configuring matching output suppression
+/// Enqueue characters for the CPU
 /// </summary>
 /// <param name="characters">Characters to queue</param>
 /// <param name="length">Number of characters</param>
@@ -564,9 +541,6 @@ bool terminal_enqueue_input_command(const char *characters, size_t length)
         terminal_input_queue.tail                              = (terminal_input_queue.tail + 1) % capacity;
     }
     terminal_input_queue.count += to_enqueue;
-
-    // Update suppression counter to match enqueued characters
-    terminal_input_queue.suppress_remaining += to_enqueue;
 
     pthread_mutex_unlock(&terminal_input_queue.mutex);
 

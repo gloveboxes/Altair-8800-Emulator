@@ -26,7 +26,7 @@
  *    - No C99/C89 features (stick to 1980-era BDS C)
  *
  * 7. The app runs on CP/M single tasking OS, only one app runs at a time
- * 
+ *
  * ============================================================
  */
 
@@ -36,6 +36,8 @@
  * Timer 1: Ports 26/27 - Set high byte (26), low byte (27) and start
  * Timer 2: Ports 28/29 - Set high byte (28), low byte (29) and start
  */
+
+#include "dxtimer.h"
 
 /* Timer port mappings */
 #define T0_MSH 24 /* Timer 0 high byte */
@@ -61,24 +63,24 @@ x_getpt(timer, type) int timer, type;
     {
         switch (timer)
         {
-            case 0:
-                return T0_MSH;
-            case 1:
-                return T1_MSH;
-            case 2:
-                return T2_MSH;
+        case 0:
+            return T0_MSH;
+        case 1:
+            return T1_MSH;
+        case 2:
+            return T2_MSH;
         }
     }
     else /* low byte port */
     {
         switch (timer)
         {
-            case 0:
-                return T0_MSL;
-            case 1:
-                return T1_MSL;
-            case 2:
-                return T2_MSL;
+        case 0:
+            return T0_MSL;
+        case 1:
+            return T1_MSL;
+        case 2:
+            return T2_MSL;
         }
     }
     return -1; /* Should never reach here */

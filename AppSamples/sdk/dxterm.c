@@ -30,28 +30,8 @@
  */
 
 /* Console and BDOS entry points */
-int bdos();
-int bios();
 
-/* Terminal key codes for Altair environment */
-#define XK_ESC 27
-#define XK_UP  5
-#define XK_DN  24
-#define XK_LT  19
-#define XK_RT  4
-#define XK_SPC 32
-
-/* Standard ANSI color codes for xterm.js */
-#define XC_BLK 30   /* Black */
-#define XC_RED 31   /* Red */
-#define XC_GRN 32   /* Green */
-#define XC_YEL 33   /* Yellow */
-#define XC_BLU 34   /* Blue */
-#define XC_MAG 35   /* Magenta */
-#define XC_CYN 36   /* Cyan */
-#define XC_WHT 37   /* White */
-#define XC_BYEL 93  /* Bright Yellow */
-#define XC_RST 0    /* Reset all attributes */
+#include "dxterm.h"
 
 /* x_putch(c) - Output single character via BIOS console. */
 int x_putch(c)
@@ -167,6 +147,13 @@ int x_isesc(code)
 int code;
 {
     return (code == XK_ESC);
+}
+
+/* x_isctrlc(code) - Return non-zero if code is Ctrl-C. */
+int x_isctrlc(code)
+int code;
+{
+    return (code == XK_CTRL_C);
 }
 
 /* x_isup(code) - Return non-zero if code is Up arrow. */

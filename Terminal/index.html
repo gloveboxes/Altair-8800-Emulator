@@ -323,7 +323,8 @@
               state.currentLine = state.currentLine.slice(-CONFIG.MAX_CURRENT_LINE_LENGTH / 2);
             }
             
-            state.term.write(data);
+            // Send pasted data to server only, no local echo
+            state.term.prompt(data);
           } else {
             console.warn("Paste data too long or invalid, ignoring");
           }
@@ -413,7 +414,7 @@
           return;
         }
 
-        // Default character input
+        // Default character input - send to server only, no local echo
         state.currentLine += key;
         
         // Prevent memory leaks from very long lines
@@ -422,8 +423,10 @@
           state.currentLine = state.currentLine.slice(-CONFIG.MAX_CURRENT_LINE_LENGTH / 2);
         }
         
+        // Send character to websocket server only
         state.term.prompt(key);
-        state.term.write(key);
+        
+        // Note: No local echo - server will echo back if needed
       }
 
       /**
@@ -439,13 +442,16 @@
           case 13: // Enter
             state.currentLine += "\r";
             state.term.prompt(state.currentLine);
-            state.term.write("\r");
+            
+            // Note: No local echo - server will echo back if needed
             state.currentLine = "";
             break;
           case 8: // Backspace
             if (state.currentLine) {
               state.currentLine = state.currentLine.slice(0, -1);
-              state.term.write("\b \b");
+              
+              // Send backspace to server, no local echo
+              state.term.prompt("\b");
             }
             break;
           default:
@@ -457,7 +463,8 @@
               state.currentLine = state.currentLine.slice(-CONFIG.MAX_CURRENT_LINE_LENGTH / 2);
             }
             
-            state.term.write(key);
+            // Send character to server only, no local echo
+            state.term.prompt(key);
         }
       }
 
@@ -547,6 +554,8 @@
           scheduleReconnect();
         }
       }
+
+
 
       /**
        * Set up WebSocket event handlers
