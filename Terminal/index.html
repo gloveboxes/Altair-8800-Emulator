@@ -20,7 +20,6 @@
         ws: null,
         connected: false,
         online: navigator.onLine,
-        characterMode: true,
         currentLine: "",
         term: null,
         reconnectAttempts: 0,
@@ -50,12 +49,10 @@
       const elements = {
         terminal: null,
         hostName: null,
-        inputMode: null,
         toggleTheme: null,
         reconnectBtn: null,
         sendEscBtn: null,
         sendCtrlCBtn: null,
-        toggleInputModeBtn: null,
         monitorBtn: null
       };
 
@@ -66,12 +63,10 @@
         try {
           elements.terminal = document.getElementById("terminal");
           elements.hostName = document.getElementById("host_name");
-          elements.inputMode = document.getElementById("inputmode");
           elements.toggleTheme = document.getElementById("toggleTheme");
           elements.reconnectBtn = document.getElementById("reconnectBtn");
           elements.sendEscBtn = document.getElementById("sendEscBtn");
           elements.sendCtrlCBtn = document.getElementById("sendCtrlCBtn");
-          elements.toggleInputModeBtn = document.getElementById("toggleInputModeBtn");
           elements.monitorBtn = document.getElementById("monitorBtn");
 
           // Validate critical elements exist
@@ -85,34 +80,7 @@
         }
         return true;
       }
-      function getInputModeMessage() {
-        return state.characterMode
-          ? 'Character input mode : Wordmaster (Ctrl+L to toggle)'
-          : 'Line input mode: Default (Ctrl+L to toggle), Reboot Altair (Ctrl+M, R, Enter)';
-      }
 
-      function refreshInputModeUI() {
-        if (elements.toggleInputModeBtn) {
-          elements.toggleInputModeBtn.textContent = state.characterMode ? 'Line mode' : 'Character mode';
-        }
-        if (elements.inputMode) {
-          elements.inputMode.textContent = getInputModeMessage();
-        }
-      }
-
-      // Add toggleInputMode button click handler
-      function setupToggleInputModeButton() {
-        if (!elements.toggleInputModeBtn) return;
-        elements.toggleInputModeBtn.onclick = function() {
-          // Toggle local state (simulate mode switch)
-          state.characterMode = !state.characterMode;
-          refreshInputModeUI();
-          if (state.term) {
-            state.term.focus();
-          }
-        };
-        refreshInputModeUI();
-      }
       // Add sendCtrlC button click handler
       function setupSendCtrlCButton() {
         if (!elements.sendCtrlCBtn) return;
@@ -192,7 +160,6 @@
         // Disable/enable control buttons based on connection state
         if (elements.sendEscBtn) elements.sendEscBtn.disabled = !connected;
         if (elements.sendCtrlCBtn) elements.sendCtrlCBtn.disabled = !connected;
-        if (elements.toggleInputModeBtn) elements.toggleInputModeBtn.disabled = !connected;
         if (elements.monitorBtn) elements.monitorBtn.disabled = !connected;
       }
       // Add reconnect button click handler
@@ -312,22 +279,8 @@
 
         // Store handler references for cleanup
         state.pasteHandler = state.term.onData((data) => {
-          if (state.characterMode) return;
-
-          if (typeof data === 'string' && data.length < CONFIG.MAX_PASTE_LENGTH) {
-            state.currentLine += data;
-            
-            // Prevent memory leaks from accumulated paste data
-            if (state.currentLine.length > CONFIG.MAX_CURRENT_LINE_LENGTH) {
-              console.warn("Current line too long after paste, truncating");
-              state.currentLine = state.currentLine.slice(-CONFIG.MAX_CURRENT_LINE_LENGTH / 2);
-            }
-            
-            // Send pasted data to server only, no local echo
-            state.term.prompt(data);
-          } else {
-            console.warn("Paste data too long or invalid, ignoring");
-          }
+          // Character mode only - ignore paste data
+          return;
         });
 
         state.keyHandler = state.term.onKey(({key, domEvent}) => {
@@ -367,10 +320,6 @@
       function handleKeyPress(key, ev) {
         // Handle Ctrl key combinations
         if (ev.ctrlKey) {
-          if (ev.keyCode === 76) { // Ctrl+L toggle
-            toggleInputMode();
-            return;
-          }
           sendControlCharacter(String.fromCharCode(ev.keyCode));
           return;
         }
@@ -382,11 +331,8 @@
           return;
         }
 
-        if (state.characterMode) {
-          handleCharacterMode(key, ev);
-        } else {
-          handleLineMode(key, ev);
-        }
+        // Always use character mode
+        handleCharacterMode(key, ev);
       }
 
       /**
@@ -427,53 +373,6 @@
         state.term.prompt(key);
         
         // Note: No local echo - server will echo back if needed
-      }
-
-      /**
-       * Handle line input mode
-       */
-      function handleLineMode(key, ev) {
-        switch (ev.keyCode) {
-          case 39: // cursor right
-          case 37: // cursor left  
-          case 38: // cursor up
-          case 40: // cursor down
-            break; // Ignore cursor keys in line mode
-          case 13: // Enter
-            state.currentLine += "\r";
-            state.term.prompt(state.currentLine);
-            
-            // Note: No local echo - server will echo back if needed
-            state.currentLine = "";
-            break;
-          case 8: // Backspace
-            if (state.currentLine) {
-              state.currentLine = state.currentLine.slice(0, -1);
-              
-              // Send backspace to server, no local echo
-              state.term.prompt("\b");
-            }
-            break;
-          default:
-            state.currentLine += key;
-            
-            // Prevent memory leaks from very long lines
-            if (state.currentLine.length > CONFIG.MAX_CURRENT_LINE_LENGTH) {
-              console.warn("Current line too long, truncating");
-              state.currentLine = state.currentLine.slice(-CONFIG.MAX_CURRENT_LINE_LENGTH / 2);
-            }
-            
-            // Send character to server only, no local echo
-            state.term.prompt(key);
-        }
-      }
-
-      /**
-       * Toggle between line and character input modes
-      */
-      function toggleInputMode() {
-        state.characterMode = !state.characterMode;
-        refreshInputModeUI();
       }
 
       /**
@@ -796,7 +695,6 @@
           setupReconnectButton();
           setupSendEscButton();
           setupSendCtrlCButton();
-          setupToggleInputModeButton();
           // Add Monitor button setup
           setupMonitorButton();
           initializeNetworkHandlers();
@@ -906,7 +804,6 @@
   <button id="reconnectBtn" class="altair-btn" disabled>Connected</button>
   <button id="sendEscBtn" class="altair-btn">Esc</button>
   <button id="sendCtrlCBtn" class="altair-btn">Ctrl+C</button>
-  <button id="toggleInputModeBtn" class="altair-btn">Line mode</button>
   <button id="monitorBtn" class="altair-btn">CPU Monitor</button>
   <button id="toggleTheme" class="altair-btn" onclick="toggleTheme()">Dark</button>
   </div>
