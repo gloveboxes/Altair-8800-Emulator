@@ -31,9 +31,24 @@
 
 #include "dxsys.h"
 
+#define ALTR_PT 70
+#define UPTIME_PT 41
+#define UTC_PT 42
+#define LOCAL_PT 43
+#define LOAD_PT 200
+#define SENSE_PT 63
+#define WKEY_PT 34
+#define WVAL_PT 35
+#define LKEY_PT 36
+#define LVAL_PT 37
+#define PKEY_PT 38
+#define PVAL_PT 39
+
 /* BDS C I/O entry points */
 int inp(); /* int inp(port) */
 outp();    /* void outp(port,val) */
+
+int x_loader(buf, size);
 
 unsigned x_rand() /* Get random number */
 {
@@ -44,3 +59,163 @@ unsigned x_rand() /* Get random number */
     return r;
 }
 
+int x_loader(buf, size)
+char *buf;
+int size;
+{
+    int i;
+    for (i = 0; i < size - 1; i++)
+    {
+        buf[i] = inp(LOAD_PT);
+        if (buf[i] == 0)
+            break;
+    }
+    buf[i] = 0;
+    return i;
+}
+
+/* get Altair 8800 Emulator Version */
+/* Pass in a buffer and its size */
+int x_altr(buf, size)
+char *buf;
+int size;
+{
+    outp(ALTR_PT, 1);
+    return x_loader(buf, size);
+}
+
+/* Get system uptime */
+/* Pass in a buffer and its size */
+int x_uptime(buf, size)
+char *buf;
+int size;
+{
+    outp(UPTIME_PT, 1);
+    return x_loader(buf, size);
+}
+
+/* Get current UTC time */
+/* Pass in a buffer and its size */
+int x_cur_utc(buf, size)
+char *buf;
+int size;
+{
+    outp(UTC_PT, 1);
+    return x_loader(buf, size);
+}
+
+/* Get current local time */
+/* Pass in a buffer and its size */
+int x_local(buf, size)
+char *buf;
+int size;
+{
+    outp(LOCAL_PT, 1);
+    return x_loader(buf, size);
+}
+
+/* Get PI Sense HAT temperature sensor */
+/* Pass in a buffer and its size */
+int x_temp(buf, size)
+char *buf;
+int size;
+{
+    outp(SENSE_PT, 0); /* data = 0 for temperature */
+    return x_loader(buf, size);
+}
+
+/* Get PI Sense HAT pressure sensor */
+/* Pass in a buffer and its size */
+int x_press(buf, size)
+char *buf;
+int size;
+{
+    outp(SENSE_PT, 1); /* data = 1 for pressure */
+    return x_loader(buf, size);
+}
+
+/* Get PI Sense HAT light sensor */
+/* Pass in a buffer and its size */
+int x_light(buf, size)
+char *buf;
+int size;
+{
+    outp(SENSE_PT, 2); /* data = 2 for light */
+    return x_loader(buf, size);
+}
+
+/* Get PI Sense HAT humidity sensor */
+/* Pass in a buffer and its size */
+int x_humid(buf, size)
+char *buf;
+int size;
+{
+    outp(SENSE_PT, 3); /* data = 3 for humidity */
+    return x_loader(buf, size);
+}
+
+/* Get weather key by index */
+/* Pass in data index, buffer and its size */
+int x_wkey(data, buf, size)
+int data;
+char *buf;
+int size;
+{
+    outp(WKEY_PT, data);
+    return x_loader(buf, size);
+}
+
+/* Get weather value by index */
+/* Pass in data index, buffer and its size */
+int x_wval(data, buf, size)
+int data;
+char *buf;
+int size;
+{
+    outp(WVAL_PT, data);
+    return x_loader(buf, size);
+}
+
+/* Get location key by index */
+/* Pass in data index, buffer and its size */
+int x_lkey(data, buf, size)
+int data;
+char *buf;
+int size;
+{
+    outp(LKEY_PT, data);
+    return x_loader(buf, size);
+}
+
+/* Get location value by index */
+/* Pass in data index, buffer and its size */
+int x_lval(data, buf, size)
+int data;
+char *buf;
+int size;
+{
+    outp(LVAL_PT, data);
+    return x_loader(buf, size);
+}
+
+/* Get pollution key by index */
+/* Pass in data index, buffer and its size */
+int x_pkey(data, buf, size)
+int data;
+char *buf;
+int size;
+{
+    outp(PKEY_PT, data);
+    return x_loader(buf, size);
+}
+
+/* Get pollution value by index */
+/* Pass in data index, buffer and its size */
+int x_pval(data, buf, size)
+int data;
+char *buf;
+int size;
+{
+    outp(PVAL_PT, data);
+    return x_loader(buf, size);
+}

@@ -31,3 +31,17 @@
 
 
 unsigned x_rand(); /* Get random number */
+int x_altr();     /* Get Altair emulator version */
+int x_uptime();   /* Get system uptime */
+int x_cur_utc();  /* Get current UTC time */
+int x_local();    /* Get current local time */
+int x_temp();     /* Get PI Sense HAT temperature */
+int x_press();    /* Get PI Sense HAT pressure */
+int x_light();    /* Get PI Sense HAT light sensor */
+int x_humid();    /* Get PI Sense HAT humidity */
+int x_wkey();     /* Get weather key by index */
+int x_wval();     /* Get weather value by index */
+int x_lkey();     /* Get location key by index */
+int x_lval();     /* Get location value by index */
+int x_pkey();     /* Get pollution key by index */
+int x_pval();     /* Get pollution value by index */
