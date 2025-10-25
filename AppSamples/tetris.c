@@ -11,6 +11,7 @@
 
 #include "dxterm.h"
 #include "dxtimer.h"
+#include "dxsys.h"
 
 /* --- BDS C hooks --- */
 int bdos();
@@ -88,53 +89,11 @@ int n;
     return (n < 0) ? -n : n;
 }
 
-int str2int(s)
-char *s;
-{
-    int r;
-    int sign;
-    r = 0;
-    sign = 1;
-    while (*s == ' ')
-        s++;
-    if (*s == '-')
-    {
-        sign = -1;
-        s++;
-    }
-    else if (*s == '+')
-    {
-        s++;
-    }
-    while (*s >= '0' && *s <= '9')
-    {
-        r = r * 10 + (*s - '0');
-        s++;
-    }
-    return r * sign;
-}
-
-int rnd_get()
-{
-    char rs[16];
-    int i, ch, r;
-    outp(44, 1);
-    i = 0;
-    while (i < 15)
-    {
-        ch = inp(200);
-        if (ch == 0)
-            break;
-        rs[i++] = ch;
-    }
-    rs[i] = 0;
-    r = str2int(rs);
-    return iabs(r);
-}
-
 int rnd_pcs()
-{
-    return (rnd_get() % 7) + 1; /* PIECE_I through PIECE_L */
+{ 
+    unsigned rnd;
+    rnd = x_rand();
+    return (rnd % 7) + 1; /* PIECE_I through PIECE_L */
 }
 
 /* ========================= Shapes ========================= */
