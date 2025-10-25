@@ -97,7 +97,7 @@ int main()
         
         /* Sleep using timer library with keyboard checking */
         x_tmrset(TIMER_ID, DELAY_MS);   /* Start timer with configured delay */
-        while (x_tmrexp(TIMER_ID) && !quit_requested) {
+        while (x_tmract(TIMER_ID) && !quit_requested) {
             /* Check for keypress during sleep */
             if (check_key_ready()) {
                 key_pressed = get_key();

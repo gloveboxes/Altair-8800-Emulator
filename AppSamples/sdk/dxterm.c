@@ -113,6 +113,20 @@ int x_keyrd()
     return (bdos(6, 0xFF) & 0xFF);
 }
 
+/* x_keyck() - Return non-zero if a key is waiting. */
+int x_keyck()
+{
+    return (bdos(11) & 0xFF);
+}
+
+/* x_keygt() - Fetch next key if available, else return 0. */
+int x_keygt()
+{
+    if (!x_keyck())
+        return 0;
+    return x_keyrd();
+}
+
 /* x_isesc(code) - Return non-zero if code is ESC. */
 int x_isesc(code)
 int code;

@@ -3,11 +3,13 @@
 
 /* C application to demonstrate use of Intel 8080 IO Ports */
 
+#include "dxtimer.h"
+
 #define DELAY 10
 
 /* dxterm library function declarations */
-int x_putch(); /* int x_putch(c); */
-int x_puts();  /* int x_puts(s); */
+int putchar(); /* int putchar(c); */
+int puts();  /* int puts(s); */
 int x_numpr(); /* int x_numpr(n); */
 int x_curmv(); /* int x_curmv(row, col); */
 int x_clrsc(); /* int x_clrsc(); */
@@ -16,8 +18,8 @@ int x_shwcr(); /* int x_shwcr(); */
 int x_setcol(); /* int x_setcol(code); */
 int x_rstcol(); /* int x_rstcol(); */
 int x_erseol(); /* int x_erseol(); */
-int x_keyck(); /* int x_keyck(); */
-int x_keygt(); /* int x_keygt(); */
+int x_keyrd(); /* int x_keyrd(); */
+int x_keyrd(); /* int x_keyrd(); */
 int x_isesc(); /* int x_isesc(code); */
 
 /* Long integer library function declarations */
@@ -113,11 +115,11 @@ main()
     x_clrsc();
     x_curmv(10, 30);
     x_setcol(XC_BYEL);
-    x_puts("Weather Station Terminated");
+    puts("Weather Station Terminated");
     x_rstcol();
     x_curmv(12, 35);
     x_setcol(XC_WHT);
-    x_puts("Thank you!");
+    puts("Thank you!");
     x_rstcol();
     x_shwcr();
 }
@@ -141,7 +143,7 @@ int row;
     {
         data = getport(key, i, buffer, 50);
         x_curmv(row, col);
-        x_puts(data);
+        puts(data);
         col += 20; /* Fixed column spacing */
     }
     x_rstcol();
@@ -154,18 +156,10 @@ int row;
     {
         data = getport(value, i, buffer, 50);
         x_curmv(row + 1, col);
-        x_puts(data);
+        puts(data);
         col += 20; /* Fixed column spacing */
     }
     x_rstcol();
-}
-
-/* Sleep for n seconds */
-void sleep(seconds) char seconds;
-{
-    outp(30, seconds); /* Enable sleep for N seconds */
-    while (inp(30))
-        ; /* Wait for sleep to expire */
 }
 
 /* Get data from Intel 8080 IO port */
@@ -213,50 +207,50 @@ void dr_layout()
     /* Main title */
     x_curmv(1, 28);
     x_setcol(XC_BYEL);
-    x_puts("ALTAIR 8800 WEATHER STATION");
+    puts("ALTAIR 8800 WEATHER STATION");
     x_curmv(1, 70);
     x_setcol(XC_CYN);
-    x_puts("ESC=Exit");
+    puts("ESC=Exit");
     x_rstcol();
     
     /* Top border */
     x_curmv(3, 1);
     x_setcol(XC_BLU);
-    x_puts("================================================================================");
+    puts("================================================================================");
     x_rstcol();
     
     /* Section headers */
     x_curmv(5, 1);
     x_setcol(XC_CYN);
-    x_puts("=== LOCATION ===");
+    puts("=== LOCATION ===");
     x_rstcol();
     
     x_curmv(9, 1);
     x_setcol(XC_YEL);
-    x_puts("=== CURRENT WEATHER ===");
+    puts("=== CURRENT WEATHER ===");
     x_rstcol();
     
     x_curmv(13, 1);
     x_setcol(XC_MAG);
-    x_puts("=== AIR QUALITY ===");
+    puts("=== AIR QUALITY ===");
     x_rstcol();
     
     /* Bottom border */
     x_curmv(19, 1);
     x_setcol(XC_BLU);
-    x_puts("================================================================================");
+    puts("================================================================================");
     x_rstcol();
     
     /* Static footer text */
     x_curmv(20, 1);
     x_setcol(XC_GRN);
-    x_puts("Data published to MQTT Broker");
+    puts("Data published to MQTT Broker");
     x_curmv(20, 35);
     x_setcol(XC_CYN);
-    x_puts("Press ESC to exit");
+    puts("Press ESC to exit");
     x_curmv(20, 55);
     x_setcol(XC_WHT);
-    x_puts("Next update:");
+    puts("Next update:");
     x_rstcol();
 }
 
@@ -382,12 +376,12 @@ void up_air()
     /* AQI needs special color handling */
     x_curmv(14, 1);
     x_setcol(XC_WHT);
-    x_puts("  AQI: ");
+    puts("  AQI: ");
     clean_num(getport(p_value, 0, buffer, 50), clean, 50);
     x_setcol(aqi_col(clean));
-    x_puts(clean);
+    puts(clean);
     x_setcol(XC_WHT);
-    x_puts("    ");
+    puts("    ");
     
     /* Build CO string */
     strcpy(output, "  CO: ");
@@ -446,10 +440,10 @@ void dr_head(reading, buffer) char *reading; char *buffer;
     /* Main title */
     x_curmv(1, 28);
     x_setcol(XC_BYEL);
-    x_puts("ALTAIR 8800 WEATHER STATION");
+    puts("ALTAIR 8800 WEATHER STATION");
     x_curmv(1, 70);
     x_setcol(XC_CYN);
-    x_puts("ESC=Exit");
+    puts("ESC=Exit");
     x_rstcol();
     
     /* Status line */
@@ -476,7 +470,7 @@ void dr_head(reading, buffer) char *reading; char *buffer;
     /* Top border */
     x_curmv(3, 1);
     x_setcol(XC_BLU);
-    x_puts("================================================================================");
+    puts("================================================================================");
     x_rstcol();
 }
 
@@ -487,26 +481,26 @@ void dr_loc()
     
     x_curmv(5, 1);
     x_setcol(XC_CYN);
-    x_puts("=== LOCATION ===");
+    puts("=== LOCATION ===");
     x_rstcol();
     
     /* Location data in a clean format */
     x_curmv(6, 1);
     x_setcol(XC_WHT);
-    x_puts("  Latitude: ");
-    x_puts(getport(l_value, 0, buffer, 50));
+    puts("  Latitude: ");
+    puts(getport(l_value, 0, buffer, 50));
     
     x_curmv(6, 40);
-    x_puts("Longitude: ");
-    x_puts(getport(l_value, 1, buffer, 50));
+    puts("Longitude: ");
+    puts(getport(l_value, 1, buffer, 50));
     
     x_curmv(7, 1);
-    x_puts("  Country: ");
-    x_puts(getport(l_value, 2, buffer, 50));
+    puts("  Country: ");
+    puts(getport(l_value, 2, buffer, 50));
     
     x_curmv(7, 40);
-    x_puts("City: ");
-    x_puts(getport(l_value, 3, buffer, 50));
+    puts("City: ");
+    puts(getport(l_value, 3, buffer, 50));
     x_rstcol();
 }
 
@@ -518,45 +512,45 @@ void dr_wthr()
     
     x_curmv(9, 1);
     x_setcol(XC_YEL);
-    x_puts("=== CURRENT WEATHER ===");
+    puts("=== CURRENT WEATHER ===");
     x_rstcol();
     
     /* Weather data in clean format */
     x_curmv(10, 1);
     x_setcol(XC_WHT);
-    x_puts("  Temperature: ");
+    puts("  Temperature: ");
     clean_num(getport(w_value, 0, buffer, 50), clean, 50);
-    x_puts(clean);
-    x_puts("C");
+    puts(clean);
+    puts("C");
     
     x_curmv(10, 30);
-    x_puts("Pressure: ");
+    puts("Pressure: ");
     clean_num(getport(w_value, 1, buffer, 50), clean, 50);
-    x_puts(clean);
-    x_puts(" hPa");
+    puts(clean);
+    puts(" hPa");
     
     x_curmv(10, 55);
-    x_puts("Humidity: ");
+    puts("Humidity: ");
     clean_num(getport(w_value, 2, buffer, 50), clean, 50);
-    x_puts(clean);
-    x_puts("%");
+    puts(clean);
+    puts("%");
     
     x_curmv(11, 1);
-    x_puts("  Wind Speed: ");
+    puts("  Wind Speed: ");
     clean_num(getport(w_value, 3, buffer, 50), clean, 50);
-    x_puts(clean);
-    x_puts(" km/h");
+    puts(clean);
+    puts(" km/h");
     
     x_curmv(11, 30);
-    x_puts("Direction: ");
+    puts("Direction: ");
     clean_num(getport(w_value, 4, buffer, 50), clean, 50);
-    x_puts(clean);
-    x_puts(" deg");
+    puts(clean);
+    puts(" deg");
     
     x_curmv(11, 55);
-    x_puts("Conditions: ");
+    puts("Conditions: ");
     clean_num(getport(w_value, 5, buffer, 50), clean, 50);
-    x_puts(clean);
+    puts(clean);
     x_rstcol();
 }
 
@@ -568,16 +562,16 @@ void dr_air()
     
     x_curmv(13, 1);
     x_setcol(XC_MAG);
-    x_puts("=== AIR QUALITY ===");
+    puts("=== AIR QUALITY ===");
     x_rstcol();
     
     /* AQI and main pollutants */
     x_curmv(14, 1);
     x_setcol(XC_WHT);
-    x_puts("  AQI: ");
+    puts("  AQI: ");
     /* Color-code AQI value based on air quality level */
     x_setcol(aqi_col(getport(p_value, 0, buffer, 50)));
-    x_puts(getport(p_value, 0, buffer, 50));
+    puts(getport(p_value, 0, buffer, 50));
     x_setcol(XC_WHT);
     
     char output[100];
@@ -641,12 +635,12 @@ int dr_foot()
     for (i = DELAY; i > 0; i--)
     {
         /* Check for key press */
-        if (x_keyck()) {
-            key = x_keygt();
+        if (x_keyrd()) {
+            key = x_keyrd();
             if (x_isesc(key)) {
                 x_curmv(21, 1);
                 x_setcol(XC_YEL);
-                x_puts("Exiting Weather Station...");
+                puts("Exiting Weather Station...");
                 x_rstcol();
                 return 1; /* Signal to exit */
             }
@@ -656,9 +650,9 @@ int dr_foot()
         x_curmv(20, 68);
         x_setcol(XC_WHT);
         x_numpr(i);
-        x_puts("s  ");
+        puts("s  ");
         x_rstcol();
-        sleep(1);
+        x_delay(0, 1000); /* 1 second delay using timer 0 */
     }
     return 0; /* Continue running */
 }
@@ -669,7 +663,7 @@ int row; int col; int color; char *text;
 {
     x_curmv(row, col);
     x_setcol(color);
-    x_puts(text);
+    puts(text);
 }
 
 /* Get AQI color based on air quality value */

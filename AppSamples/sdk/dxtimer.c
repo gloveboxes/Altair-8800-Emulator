@@ -91,7 +91,7 @@ x_getpt(timer, type) int timer, type;
  * timer: 0-2, ms: delay in milliseconds
  * Returns 0 on success, -1 if invalid timer.
  */
-x_delay(timer, ms) int timer;
+int x_delay(timer, ms) int timer;
 unsigned ms;
 {
     char hi_byte, lo_byte;
@@ -123,9 +123,8 @@ unsigned ms;
 /* ------------------------------------------------------- */
 /* x_tmrset(timer, ms) - Start non-blocking timer for given milliseconds.
  * timer: 0-2, ms: delay in milliseconds
- * Returns 0 on success, -1 if invalid timer.
  */
-x_tmrset(timer, ms) int timer;
+int x_tmrset(timer, ms) int timer;
 unsigned ms;
 {
     char hi_byte, lo_byte;
@@ -153,9 +152,9 @@ unsigned ms;
 /* ------------------------------------------------------- */
 /* x_tmrexp(timer) - Check if non-blocking timer has expired.
  * timer: 0-2
- * Returns 0 if expired, 1 if still running, -1 if invalid timer.
+ * Returns 1 (true) if expired, 0 (false) if still running, 1 (true) if invalid timer.
  */
-x_tmrexp(timer) int timer;
+int x_tmrexp(timer) int timer;
 {
     int lo_port;
 
@@ -166,5 +165,24 @@ x_tmrexp(timer) int timer;
     /* Get low byte port */
     lo_port = x_getpt(timer, 1);
 
-    return inp(lo_port);
+    return inp(lo_port) == 0; /* 0 if running, non-zero if expired */
 }
+
+/* x_tmract(timer) - Check if non-blocking timer is active.
+ * timer: 0-2
+ * Returns non-zero if active/running, 0 if expired, -1 if invalid timer.
+ */
+int x_tmract(timer) int timer;
+{
+    int lo_port;
+
+    /* Validate timer range */
+    if (timer < 0 || timer > 2)
+        return -1;
+
+    /* Get low byte port */
+    lo_port = x_getpt(timer, 1);
+
+    return inp(lo_port); /* non-zero if running, 0 if expired */
+}
+

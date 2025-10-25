@@ -206,7 +206,7 @@ main()
             break;
         }
 
-        if (!x_tmrexp(0) || chkdir(c, &direction))
+        if (x_tmrexp(0) || chkdir(c, &direction))
         {
             upd_disp(&direction);
             x_tmrset(0, 50); /* Reset timer 0 for another 50 ms */

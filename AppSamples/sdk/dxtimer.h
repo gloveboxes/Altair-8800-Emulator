@@ -32,6 +32,7 @@
 /* Altair 8800 Timer Functions for BDS C */
 
 /* Timer control functions */
-int x_delay();  /* Blocking delay in milliseconds */
-int x_tmrset(); /* Start non-blocking timer */
-int x_tmrexp(); /* Check if non-blocking timer has expired */
+int x_delay(timer, ms);  /* Blocking delay in milliseconds */
+int x_tmrset(timer, ms); /* Start non-blocking timer */
+int x_tmrexp(timer); /* Check if non-blocking timer has expired. True if expired, false if still running, 1 if invalid timer. */
+int x_tmract(timer); /* Check if non-blocking timer is active. Non-zero if active/running, 0 if expired, -1 if invalid timer. */

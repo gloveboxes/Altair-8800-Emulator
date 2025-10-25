@@ -13,46 +13,17 @@
  * Based on breakout.c pattern for BDS C compatibility
  */
 
+#include "dxterm.h"
+
 /* BDS C library hooks */
 int inp();    /* int inp(port); */
 int outp();   /* int outp(port, value); */
 
-/* Timer library functions */
-int x_tmrset(); /* int x_tmrset(timer, ms); */
-int x_tmrexp(); /* int x_tmrexp(timer); */
 
-/* Terminal library functions */
-int x_putch(); /* int x_putch(c); */
-int x_puts();  /* int x_puts(s); */
-int x_numpr(); /* int x_numpr(n); */
-int x_curmv(); /* int x_curmv(row, col); */
-int x_clrsc(); /* int x_clrsc(); */
-int x_hidcr(); /* int x_hidcr(); */
-int x_shwcr(); /* int x_shwcr(); */
-int x_keyck(); /* int x_keyck(); */
-int x_keygt(); /* int x_keygt(); */
-int x_isesc(); /* int x_isesc(code); */
-int x_isup();  /* int x_isup(code); */
-int x_isdn();  /* int x_isdn(code); */
-int x_islt();  /* int x_islt(code); */
-int x_isrt();  /* int x_isrt(code); */
-int x_setcol(); /* int x_setcol(code); */
-int x_rstcol(); /* int x_rstcol(); */
-
-/* Color constants */
-#define XC_BLK 30   /* Black */
-#define XC_RED 31   /* Red */
-#define XC_GRN 32   /* Green */
-#define XC_YEL 33   /* Yellow */
-#define XC_BLU 34   /* Blue */
-#define XC_MAG 35   /* Magenta */
-#define XC_CYN 36   /* Cyan */
-#define XC_WHT 37   /* White */
-#define XC_RST 0    /* Reset all attributes */
 
 /* Timer configuration */
 #define TIMER_ID 2  /* Use timer 2 */
-#define TIMER_MS 25 /* 25ms game loop timer */
+#define TIMER_MS 50 /* 50ms game loop timer */
 
 /* Screen Boundaries */
 #define MIN_ROW 6
@@ -69,12 +40,8 @@ int x_rstcol(); /* int x_rstcol(); */
 #define GAME_OVER    1
 #define GAME_QUIT    2
 
-/* Directions */
+/* Directions - using SDK key codes */
 #define DIR_NONE  0
-#define DIR_UP    1
-#define DIR_DOWN  2
-#define DIR_LEFT  3
-#define DIR_RIGHT 4
 
 /* Snake body coordinates */
 int sn_row[MAX_SNAKE_LENGTH];
@@ -92,10 +59,10 @@ int gm_st;
 int score;
 int sp_lvl;
 
-/* Timing */
-int gm_cnt;
-int in_cnt;
-int st_cnt;
+/* Simple counter-based timing */
+int move_counter;
+
+
 
 /* --- Game Display --- */
 
@@ -110,23 +77,23 @@ int draw_walls()
     x_curmv(MIN_ROW - 1, MIN_COL - 1);
     for (i = MIN_COL - 1; i <= MAX_COL + 1; i++)
     {
-        x_putch('#');
+        putchar('#');
     }
 
     /* Draw side walls */
     for (i = MIN_ROW; i <= MAX_ROW; i++)
     {
         x_curmv(i, MIN_COL - 1);
-        x_putch('#');
+        putchar('#');
         x_curmv(i, MAX_COL + 1);
-        x_putch('#');
+        putchar('#');
     }
 
     /* Draw bottom wall */
     x_curmv(MAX_ROW + 1, MIN_COL - 1);
     for (i = MIN_COL - 1; i <= MAX_COL + 1; i++)
     {
-        x_putch('#');
+        putchar('#');
     }
 
     /* Reset color */
@@ -137,13 +104,13 @@ int draw_walls()
 int draw_instructions()
 {
     x_curmv(1, 1);
-    x_puts("Snake Game for Altair 8800 (Enable Character Mode: Ctrl+L)");
+    puts("Snake Game for Altair 8800 (Enable Character Mode: Ctrl+L)");
     x_curmv(2, 1);
-    x_puts("Arrow keys to move, ESC to quit. Don't hit walls or yourself!");
+    puts("Arrow keys to move, ESC to quit. Don't hit walls or yourself!");
     x_curmv(3, 1);
-    x_puts("Eat food (*) to grow and increase score.");
+    puts("Eat food (*) to grow and increase score.");
     x_curmv(4, 1);
-    x_puts("------------------------------------------------------------------");
+    puts("------------------------------------------------------------------");
     return 0;
 }
 
@@ -157,11 +124,11 @@ int is_head;
     x_curmv(row, col);
     if (is_head)
     {
-        x_putch('O'); /* Head */
+        putchar('O'); /* Head */
     }
     else
     {
-        x_putch('o'); /* Body */
+        putchar('o'); /* Body */
     }
     /* Reset color */
     x_rstcol();
@@ -173,7 +140,7 @@ int row;
 int col;
 {
     x_curmv(row, col);
-    x_putch(' ');
+    putchar(' ');
     return 0;
 }
 
@@ -184,7 +151,7 @@ int col;
     /* Set blue color for food */
     x_setcol(XC_BLU);
     x_curmv(row, col);
-    x_putch('*');
+    putchar('*');
     /* Reset color */
     x_rstcol();
     return 0;
@@ -193,13 +160,13 @@ int col;
 int snake_update_status()
 {
     x_curmv(5, 1);
-    x_puts("Score: ");
+    puts("Score: ");
     x_numpr(score);
-    x_puts("   Length: ");
+    puts("   Length: ");
     x_numpr(sn_len);
-    x_puts("   Speed: ");
+    puts("   Speed: ");
     x_numpr(sp_lvl);
-    x_puts("                    ");
+    puts("                    ");
     return 0;
 }
 
@@ -321,10 +288,7 @@ int snake_handle_input()
 {
     int key;
 
-    if (!x_keyck())
-        return 0;
-
-    key = x_keygt();
+    key = x_keyrd(); /* Read raw key code no waiting */
     if (!key)
         return 0;
 
@@ -335,21 +299,21 @@ int snake_handle_input()
     }
 
     /* Handle direction changes - prevent reversing into self */
-    if (x_isup(key) && sn_dir != DIR_DOWN)
+    if (x_isup(key) && sn_dir != XK_DN)
     {
-        nxt_dir = DIR_UP;
+        nxt_dir = XK_UP;
     }
-    else if (x_isdn(key) && sn_dir != DIR_UP)
+    else if (x_isdn(key) && sn_dir != XK_UP)
     {
-        nxt_dir = DIR_DOWN;
+        nxt_dir = XK_DN;
     }
-    else if (x_islt(key) && sn_dir != DIR_RIGHT)
+    else if (x_islt(key) && sn_dir != XK_RT)
     {
-        nxt_dir = DIR_LEFT;
+        nxt_dir = XK_LT;
     }
-    else if (x_isrt(key) && sn_dir != DIR_LEFT)
+    else if (x_isrt(key) && sn_dir != XK_LT)
     {
-        nxt_dir = DIR_RIGHT;
+        nxt_dir = XK_RT;
     }
 
     return 0;
@@ -362,8 +326,8 @@ int init_snake()
     int i;
 
     sn_len  = INITIAL_LENGTH;
-    sn_dir  = DIR_RIGHT;
-    nxt_dir = DIR_RIGHT;
+    sn_dir  = XK_RT;
+    nxt_dir = XK_RT;
 
     /* Place snake in center, moving right */
     for (i = 0; i < sn_len; i++)
@@ -394,19 +358,19 @@ int move_snake()
     head_r = sn_row[0];
     head_c = sn_col[0];
 
-    if (sn_dir == DIR_UP)
+    if (sn_dir == XK_UP)
     {
         head_r--;
     }
-    else if (sn_dir == DIR_DOWN)
+    else if (sn_dir == XK_DN)
     {
         head_r++;
     }
-    else if (sn_dir == DIR_LEFT)
+    else if (sn_dir == XK_LT)
     {
         head_c--;
     }
-    else if (sn_dir == DIR_RIGHT)
+    else if (sn_dir == XK_RT)
     {
         head_c++;
     }
@@ -484,33 +448,22 @@ int move_snake()
     return 1;
 }
 
-int gt_spd()
-{
-    int base_cycles;
-    int speed_cycles;
 
-    /* Base speed: 80 cycles = 2000ms (2 seconds), gets faster with level */
-    base_cycles  = 80;
-    speed_cycles = base_cycles - (sp_lvl * 5);
-    if (speed_cycles < 16)
-        speed_cycles = 16; /* Minimum: 400ms */
-    return speed_cycles;
-}
 
 /* --- Game Over Display --- */
 
 int show_game_over()
 {
     x_curmv(15, 30);
-    x_puts("GAME OVER!");
+    puts("GAME OVER!");
     x_curmv(16, 25);
-    x_puts("Final Score: ");
+    puts("Final Score: ");
     x_numpr(score);
     x_curmv(17, 25);
-    x_puts("Final Length: ");
+    puts("Final Length: ");
     x_numpr(sn_len);
     x_curmv(18, 25);
-    x_puts("Press ESC to quit");
+    puts("Press ESC to quit");
     return 0;
 }
 
@@ -519,6 +472,7 @@ int show_game_over()
 int main()
 {
     int key;
+    int move_delay;
 
     /* Initialize game state */
     gm_st       = GAME_PLAYING;
@@ -526,10 +480,7 @@ int main()
     sp_lvl      = 1;
     food_exists = 0;
 
-    /* Initialize timing counters */
-    gm_cnt = 0;
-    in_cnt = 0;
-    st_cnt = 0;
+
 
     /* Set up display */
     x_clrsc();
@@ -546,53 +497,45 @@ int main()
     /* Initial status display */
     snake_update_status();
 
+    move_counter = 0;
+    x_tmrset(TIMER_ID, 20); /* Set timer for main loop - 20ms like game.c */
+
     /* Main game loop */
     while (gm_st == GAME_PLAYING)
     {
-        /* Start timer for this loop iteration */
-        x_tmrset(TIMER_ID, TIMER_MS);
-
         /* Handle input every cycle */
-        in_cnt++;
-        if (in_cnt >= 1)
-        { /* Check input every cycle */
-            snake_handle_input();
-            in_cnt = 0;
-        }
+        snake_handle_input();
+        
+        if (gm_st != GAME_PLAYING)
+            break;
 
-        /* Move snake based on speed */
-        gm_cnt++;
-        if (gm_cnt >= gt_spd())
+        /* Use counter-based movement timing */
+        if (x_tmrexp(TIMER_ID))
         {
-            if (gm_st == GAME_PLAYING)
+            move_counter++;
+            
+            /* Move snake every N cycles based on speed level */
             {
-                move_snake();
+                move_delay = 10 - sp_lvl; /* Starts at 10, gets faster */
+                if (move_delay < 4) move_delay = 4; /* Minimum delay */
+                
+                if (move_counter >= move_delay)
+                {
+                    move_snake();
+                    move_counter = 0;
+                    
+                    /* Place new food if needed */
+                    if (!food_exists && gm_st == GAME_PLAYING)
+                    {
+                        place_food();
+                    }
+                    
+                    /* Update status display */
+                    snake_update_status();
+                }
             }
-            gm_cnt = 0;
-        }
 
-        /* Place new food if needed */
-        if (!food_exists && gm_st == GAME_PLAYING)
-        {
-            place_food();
-        }
-
-        /* Update status display */
-        st_cnt++;
-        if (st_cnt >= 20)
-        { /* Update every 500ms */
-            snake_update_status();
-            st_cnt = 0;
-        }
-
-        /* Wait for timer to expire */
-        while (x_tmrexp(TIMER_ID) && gm_st == GAME_PLAYING)
-        {
-            /* Check for quit during wait */
-            if (x_keyck())
-            {
-                snake_handle_input();
-            }
+            x_tmrset(TIMER_ID, 20); /* Reset 20ms timer like game.c */
         }
     }
 
@@ -604,19 +547,16 @@ int main()
         /* Wait for quit key */
         while (1)
         {
-            if (x_keyck())
-            {
-                key = x_keygt();
-                if (x_isesc(key))
-                    break;
-            }
+            key = x_keyrd(); /* Read raw key code no waiting */
+            if (key && x_isesc(key))
+                break;
         }
     }
 
     /* Cleanup */
     x_curmv(27, 1);
     x_shwcr();
-    x_puts("Thanks for playing Snake!\r\n");
+    puts("Thanks for playing Snake!\r\n");
 
     return 0;
 }
