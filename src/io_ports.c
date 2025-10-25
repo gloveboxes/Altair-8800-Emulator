@@ -58,6 +58,7 @@ void io_port_out(uint8_t port, uint8_t data)
 
         // Utility IO Ports
         case 44: // Load random number to seed Microsoft/Altair BASIC randomize command
+        case 45: // generate a 16 bit random number and load low byte and high byte
         case 70: // Load Altair version number
         case 71: // Load OS Version
         case 72: // Load Azure Sphere Device ID - note for security reasons only getting the first 8 chars

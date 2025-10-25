@@ -27,6 +27,14 @@ size_t utility_output(int port, uint8_t data, char *buffer, size_t buffer_length
         case 44: // Generate random number to seed mbasic randomize command
             len = (size_t)snprintf(buffer, buffer_length, "%d", ((rand() % 64000) - 32000));
             break;
+        case 45: // generate a 16 bit random number and load low byte and high byte
+        {
+            u_int16_t num = (uint16_t)(rand() % 65536); // 0 to 65535 unsigned 16 bit number
+            buffer[0]   = (char)(num & 0x00FF);        // low byte
+            buffer[1]   = (char)((num & 0xFF00) >> 8); // high byte
+            len         = 2;
+            break;
+        }
         case 70: // Load Altair version number
             len = (size_t)snprintf(buffer, buffer_length, "%s", ALTAIR_EMULATOR_VERSION);
             break;
