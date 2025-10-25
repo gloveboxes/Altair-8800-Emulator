@@ -1,0 +1,17 @@
+gf -f sdk/dxtimer.h
+gf -f sdk/dxtimer.c
+gf -f sdk/dxterm.h
+gf -f sdk/dxterm.c
+gf -f sdk/dxsys.h
+gf -f sdk/dxsys.c
+
+cc dxtimer
+cc dxterm
+cc dxsys
+
+era dxtimer.c
+era dxtimer.h
+era dxterm.c
+era dxterm.h
+era dxsys.c
+era dxsys.h
