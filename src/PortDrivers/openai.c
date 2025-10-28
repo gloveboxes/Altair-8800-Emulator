@@ -14,18 +14,32 @@
 #include <applibs/storage.h>
 #endif // AZURE_SPHERE
 
-static const char system_message[] = "You are an intelligent assistant";
-static const char user_message[]   = "What is the meaning of life in 5 short bullet points followed by a summary";
-static const int max_tokens        = 128;
+// 30k buffer for OpenAI message payload
+#define OPENAI_BUFFER_SIZE 30720
+static char openai_buffer[OPENAI_BUFFER_SIZE];
+static int buffer_index = 0;
 
-// "write Microsoft BASIC-80 Rev. 5.21 syntax code with line numbers and single letter variable names. Just write code no explanation",
-// "Calculate prime numbers from 0 to 100", 256);
+// Response buffer system (exactly like file_io.c)
+#define RESPONSE_CHUNK_SIZE 256
+
+typedef struct {
+    char chunk_buffer[RESPONSE_CHUNK_SIZE];
+    size_t chunk_bytes_available;
+    size_t chunk_position;
+    bool response_complete;
+    bool has_data;
+} OPENAI_RESPONSE_T;
+
+static OPENAI_RESPONSE_T openai_response;
+pthread_mutex_t openai_response_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t openai_data_available_cond = PTHREAD_COND_INITIALIZER;  // Consumer waits for data
+pthread_cond_t openai_data_consumed_cond = PTHREAD_COND_INITIALIZER;   // Producer waits for consumption
 
 static int stream_openai(struct curl_slist *headers, const char *postData, long timeout);
 static void *openai_thread(void *arg);
+static bool send_openai_message(void);
 
 static const char *openai_endpoint = "https://api.openai.com/v1/chat/completions";
-static char *openai_prompt         = NULL;
 static struct curl_slist *headers  = NULL;
 static bool streaming              = false;
 
@@ -57,53 +71,125 @@ void init_openai(const char *openai_api_key)
 {
     if (!headers)
     {
-        char auth[128];
+        char auth[256];  // Increased buffer size for longer API keys
         snprintf(auth, sizeof(auth), "Authorization: Bearer %s", openai_api_key);
 
         headers = curl_slist_append(headers, auth);
         headers = curl_slist_append(headers, "Content-Type: application/json");
+        
+        // Debug: Print the full auth header to verify it's complete
+        printf("=== OpenAI Auth Header ===\n");
+        printf("%s\n", auth);
+        printf("=== End Auth Header ===\n");
+        fflush(stdout);
     }
 }
 
-char *create_prompt(const char *system_message, const char *user_message, int max_tokens)
+// Function to reset the buffer
+void reset_openai_buffer(void)
 {
-    JSON_Value *root_value = NULL;
-    // create a json object of the post data using parson
-    root_value               = json_value_init_object();
-    JSON_Object *root_object = json_value_get_object(root_value);
-    json_object_set_string(root_object, "model", "gpt-3.5-turbo");
-    json_object_set_number(root_object, "temperature", 0.5);
-    json_object_set_number(root_object, "max_tokens", max_tokens);
-    json_object_set_number(root_object, "top_p", 0.5);
-    json_object_set_number(root_object, "n", 1);
-    json_object_set_boolean(root_object, "stream", true);
+    memset(openai_buffer, 0, OPENAI_BUFFER_SIZE);
+    buffer_index = 0;
+}
 
-    // create a messages array
-    JSON_Value *messages_value = json_value_init_array();
-    JSON_Array *messages_array = json_value_get_array(messages_value);
-    json_object_set_value(root_object, "messages", messages_value);
-    // create a message object
-    JSON_Value *message_value   = json_value_init_object();
-    JSON_Object *message_object = json_value_get_object(message_value);
-    json_object_set_string(message_object, "role", "system");
-    json_object_set_string(message_object, "content", system_message);
-    json_array_append_value(messages_array, message_value);
-    // create a message object
-    message_value  = json_value_init_object();
-    message_object = json_value_get_object(message_value);
-    json_object_set_string(message_object, "role", "user");
-    json_object_set_string(message_object, "content", user_message);
-    json_array_append_value(messages_array, message_value);
-    message_value = json_value_init_object();
-    // message_object = json_value_get_object(message_value);
-    // json_object_set_string(message_object, "role", "user");
-    // json_object_set_string(message_object, "content", "then translate to tagalog");
-    // json_array_append_value(messages_array, message_value);
+// Function to reset the response buffer
+void reset_openai_response(void)
+{
+    pthread_mutex_lock(&openai_response_mutex);
+    
+    // Clear entire buffer
+    memset(openai_response.chunk_buffer, 0, RESPONSE_CHUNK_SIZE);
+    
+    openai_response.chunk_bytes_available = 0;
+    openai_response.chunk_position = 0;
+    openai_response.response_complete = false;
+    openai_response.has_data = false;
+    
+    pthread_mutex_unlock(&openai_response_mutex);
+}
 
-    char *jsonString = json_serialize_to_string(root_value);
-    json_value_free(root_value);
+// Function to add response data to buffer (called from callback - blocks like file_io.c)
+void add_response_data(const char* content)
+{
+    if (!content || strlen(content) == 0) {
+        return;
+    }
 
-    return jsonString;
+    pthread_mutex_lock(&openai_response_mutex);
+    
+    // Wait for current chunk to be consumed (exactly like file_io.c)
+    while (openai_response.chunk_bytes_available > 0) {
+        // printf("add_response_data: Waiting for chunk to be consumed...\n");
+        pthread_cond_wait(&openai_data_consumed_cond, &openai_response_mutex);
+    }
+    
+    size_t content_len = strlen(content);
+    size_t bytes_to_copy = (content_len >= RESPONSE_CHUNK_SIZE) ? RESPONSE_CHUNK_SIZE - 1 : content_len;
+    
+    // printf("add_response_data: Adding \"%s\" (len=%zu)\n", content, bytes_to_copy);
+    
+    // Copy content to buffer (REPLACE not append)
+    memcpy(openai_response.chunk_buffer, content, bytes_to_copy);
+    openai_response.chunk_buffer[bytes_to_copy] = '\0';
+    
+    // Set new chunk parameters
+    openai_response.chunk_bytes_available = bytes_to_copy;
+    openai_response.chunk_position = 0;
+    openai_response.has_data = true;
+    
+    // Signal that new data is available
+    pthread_cond_signal(&openai_data_available_cond);
+    pthread_mutex_unlock(&openai_response_mutex);
+}
+
+
+
+
+
+// Function to mark response as complete
+void mark_response_complete(void)
+{
+    pthread_mutex_lock(&openai_response_mutex);
+    openai_response.response_complete = true;
+    pthread_cond_signal(&openai_data_available_cond);
+    pthread_mutex_unlock(&openai_response_mutex);
+}
+
+// Function to add byte to buffer and process when null terminator is received
+void add_byte_to_buffer(uint8_t byte)
+{
+    if (buffer_index < OPENAI_BUFFER_SIZE - 1)
+    {
+        openai_buffer[buffer_index] = byte;
+        buffer_index++;
+    }
+    
+    // If null terminator received, process the complete payload
+    if (byte == 0x00)
+    {
+        openai_buffer[buffer_index - 1] = '\0'; // Ensure null termination
+        printf("OpenAI payload received (%d bytes):\n%s\n", buffer_index - 1, openai_buffer);
+        
+        // Call OpenAI API with the complete payload
+        if (headers && !streaming)
+        {
+            openai.status = OPENAI_WAITING;
+            // pthread_mutex_unlock(&openai_mutex);  // Commented out to match callback changes
+            dx_startThreadDetached(openai_thread, NULL, "OpenAI Thread");
+        }
+    }
+}
+
+// Function to send OpenAI message with current buffer content
+bool send_openai_message(void)
+{
+    if (headers && !streaming && buffer_index > 0)
+    {
+        openai.status = OPENAI_WAITING;
+        dx_startThreadDetached(openai_thread, NULL, "OpenAI Thread");
+        return true;
+    }
+    return false;
 }
 
 size_t openai_output(int port, uint8_t data, char *buffer, size_t buffer_length)
@@ -111,50 +197,25 @@ size_t openai_output(int port, uint8_t data, char *buffer, size_t buffer_length)
     size_t len = 0;
     switch (port)
     {
-
-        case 120: // Set system message
-            // if (openai.index == 0)
-            // {
-            //     memset(openai.system_message, 0x00, ENDPOINT_LEN);
-            // }
-
-            // if (data != 0 && openai.index < ENDPOINT_LEN)
-            // {
-            //     openai.system_message[openai.index++] = data;
-            // }
-
-            // if (data == 0) // NULL TERMINATION
-            // {
-            //     openai.system_message[openai.index] = 0x00;
-            //     openai.index                        = 0;
-            // }
+        case 120: // Reset buffer index to 0
+            reset_openai_buffer();
             break;
-        case 121: // Set user Message
-
-            if (openai_prompt == NULL)
-            {
-                openai_prompt = create_prompt(system_message, user_message, max_tokens);
-            }
+            
+        case 121: // Add byte to buffer until null received
+            add_byte_to_buffer(data);
             break;
 
-        case 122: // Set assistant message
-
+        case 122: // Reset response buffer
+            reset_openai_response();
             break;
-        case 123: // Clear all messages
-
+            
+        case 123: // Reserved for future use
             break;
-        case 124: // Load OpenAI stream
-            if (headers)
-            {
-                openai.status = OPENAI_WAITING;
-                pthread_mutex_unlock(&openai_mutex);
-                dx_startThreadDetached(openai_thread, NULL, "OpenAI Thread");
-            }
-
+            
+        case 124: // Reserved for future use
             break;
 
         case 125: // Cancel ChatGPT stream
-
             break;
     }
 
@@ -167,28 +228,94 @@ uint8_t openai_input(uint8_t port)
 
     switch (port)
     {
-        case 120: // get streaming status
-            retVal = openai.status;
-            break;
-        case 121: // get message
-
-            if (openai.content_index < openai.content_length)
+        case 120: // Send ChatGPT message and get initial status
+            if (send_openai_message())
             {
-                retVal = openai.content[openai.content_index++];
+                retVal = 1; // Success
             }
             else
             {
-                retVal        = 0x00;
-                openai.status = OPENAI_WAITING;
-                pthread_mutex_unlock(&openai_mutex);
+                retVal = 0; // Error
             }
-
+            break;
+            
+        case 121: // Get buffer length low byte
+            retVal = (uint8_t)(buffer_index & 0xFF);
+            break;
+            
+        case 122: // Get buffer length high byte  
+            retVal = (uint8_t)((buffer_index >> 8) & 0xFF);
             break;
 
-        case 122: // get finished status
-            if (openai.last_finish_reason_length < strlen(openai.last_finish_reason))
+        case 123: // Get OpenAI response status (exactly like port 33 in file_io.c)
+            pthread_mutex_lock(&openai_response_mutex);
+            if (openai_response.chunk_bytes_available > 0 && openai_response.chunk_position < openai_response.chunk_bytes_available)
             {
-                retVal = openai.last_finish_reason[openai.last_finish_reason_length++];
+                retVal = 2; // OPENAI_DATA_READY (matches WEBGET_DATA_READY)
+            }
+            else if (openai_response.response_complete)
+            {
+                retVal = 0; // OPENAI_EOF (matches WEBGET_EOF)
+            }
+            else
+            {
+                retVal = 1; // OPENAI_WAITING (matches WEBGET_WAITING)
+            }
+            pthread_mutex_unlock(&openai_response_mutex);
+            break;
+            
+        case 124: // Read one byte from response buffer (exactly like file_io.c)
+            pthread_mutex_lock(&openai_response_mutex);
+            if (openai_response.chunk_bytes_available > 0 && openai_response.chunk_position < openai_response.chunk_bytes_available)
+            {
+                // Return byte from current chunk
+                retVal = openai_response.chunk_buffer[openai_response.chunk_position];
+                // printf("Port 124: Read '%c' (0x%02x) pos=%zu/%zu\n", retVal, retVal, 
+                //        openai_response.chunk_position, openai_response.chunk_bytes_available);
+                openai_response.chunk_position++;
+                
+                // Check if we've consumed the entire chunk
+                if (openai_response.chunk_position >= openai_response.chunk_bytes_available)
+                {
+                    // printf("Port 124: Chunk consumed, signaling for more data\n");
+                    // Reset chunk for next fill (exactly like file_io.c)
+                    openai_response.chunk_bytes_available = 0;
+                    openai_response.chunk_position = 0;
+                    openai_response.has_data = false;
+                    
+                    // Signal that chunk buffer is now available for new data
+                    pthread_cond_signal(&openai_data_consumed_cond);
+                }
+            }
+            else
+            {
+                // No data in buffer
+                retVal = 0x00;
+                printf("Port 124: No data available, returning 0\n");
+            }
+            pthread_mutex_unlock(&openai_response_mutex);
+            break;
+
+        case 125: // Check if response stream is complete (1 = complete, 0 = ongoing)
+            pthread_mutex_lock(&openai_response_mutex);
+            retVal = openai_response.response_complete ? 1 : 0;
+            pthread_mutex_unlock(&openai_response_mutex);
+            break;
+            
+        case 126: // Get finish reason length
+            retVal = (uint8_t)openai.last_finish_reason_length;
+            break;
+            
+        case 127: // Get finish reason character by character
+            {
+                static int finish_reason_pos = 0;
+                if (finish_reason_pos < openai.last_finish_reason_length) {
+                    retVal = (uint8_t)openai.last_finish_reason[finish_reason_pos];
+                    finish_reason_pos++;
+                } else {
+                    retVal = 0;
+                    finish_reason_pos = 0; // Reset for next call
+                }
             }
             break;
     }
@@ -243,22 +370,6 @@ static int pthread_mutex_timedlock(pthread_mutex_t *mutex, const struct timespec
 /// @return
 static size_t StreamOpenAICallback(void *contents, size_t size, size_t nmemb, void *openai)
 {
-    // Packet shape for OpenAI streaming API
-    // {
-    //     "id": "cmpl-7Y2XIEtgA7MkTlLhKD3kZ7LSHA6ms",
-    //     "object": "text_completion",
-    //     "created": 1688347256,
-    //     "choices": [
-    //         {
-    //             "text": "Building",
-    //             "index": 0,
-    //             "logprobs": null,
-    //             "finish_reason": null
-    //         }
-    //     ],
-    //     "model": "text-davinci-003"
-    // }
-
     JSON_Array *choices    = NULL;
     JSON_Object *choice    = NULL;
     JSON_Object *messages  = NULL;
@@ -285,17 +396,13 @@ static size_t StreamOpenAICallback(void *contents, size_t size, size_t nmemb, vo
 
 #endif // __APPLE__
 
-    if (pthread_mutex_timedlock(&openai_mutex, &timeoutTime) != 0)
-    {
-        chat->status = OPENAI_END_OF_STREAM;
-        strcpy(chat->last_finish_reason, "lock tout");
-        // returning -1 will cause the curl request to fail and end
-        return -1;
-    }
+    // No need to wait here - add_response_data() handles blocking for each chunk
+    // The consumer signals openai_data_consumed_cond when each chunk is fully read
 
     chat->content_index  = 0;
     chat->content_length = 0;
     char *ptr            = (char *)contents;
+    char *end_ptr        = NULL;
 
     while (ptr != NULL)
     {
@@ -304,12 +411,33 @@ static size_t StreamOpenAICallback(void *contents, size_t size, size_t nmemb, vo
         {
             // skip past the word data:
             ptr += 6;
+            
+            // Find the end of this data chunk (next newline)
+            end_ptr = strchr(ptr, '\n');
+            if (end_ptr) {
+                *end_ptr = '\0'; // Temporarily null terminate for parsing
+            }
+            
+            // printf("RAW SSE DATA: \"%s\"\n", ptr);
 
             root_value = json_parse_string(ptr);
             if (root_value == NULL)
             {
-                // printf("StreamOpenAICallback: json_parse_string failed\n");
-                goto cleanup;
+                // This is expected for "[DONE]" marker
+                if (strncmp(ptr, "[DONE]", 6) != 0) {
+                    printf("StreamOpenAICallback: json_parse_string failed for: %s\n", ptr);
+                }
+                // Restore the newline if we modified it
+                if (end_ptr) {
+                    *end_ptr = '\n';
+                    ptr = end_ptr + 1;
+                }
+                continue;
+            }
+            
+            // Restore the newline if we modified it
+            if (end_ptr) {
+                *end_ptr = '\n';
             }
 
             JSON_Object *root_object = json_value_get_object(root_value);
@@ -345,12 +473,26 @@ static size_t StreamOpenAICallback(void *contents, size_t size, size_t nmemb, vo
             }
             else
             {
-                content = NULL;
                 strcpy(chat->last_finish_reason, finish_reason);
+                chat->last_finish_reason_length = (int)strlen(finish_reason);
+                // Print newline when stream ends
+                printf("\n[OpenAI stream ended: %s]\n", finish_reason);
+                fflush(stdout);
+                
+                // Mark response as complete and STOP processing any more deltas
+                mark_response_complete();
+                
+                // Important: Return immediately to stop processing any more data
+                return realsize;
             }
 
             if (content != NULL)
             {
+                // Block until previous data consumed (exactly like file_io.c)
+                // printf("CALLBACK: Raw delta received: \"%s\" (len=%zu)\n", content, strlen(content));
+                printf("%s", content);
+                add_response_data(content);
+                
                 int content_length = strlen(content);
                 if (content_length > 0 && chat->content_length + content_length < sizeof(chat->content))
                 {
@@ -366,6 +508,13 @@ static size_t StreamOpenAICallback(void *contents, size_t size, size_t nmemb, vo
                 json_value_free(root_value);
                 root_value = NULL;
             }
+            
+            // Move to next data chunk
+            if (end_ptr) {
+                ptr = end_ptr + 1;
+            } else {
+                ptr = NULL;
+            }
         }
     }
 
@@ -377,6 +526,13 @@ static size_t StreamOpenAICallback(void *contents, size_t size, size_t nmemb, vo
 static int stream_openai(struct curl_slist *headers, const char *postData, long timeout)
 {
     CURL *curl_handle;
+
+    // Debug: Show what payload we're about to send
+    printf("=== Sending to OpenAI API ===\n");
+    printf("Payload length: %zu bytes\n", strlen(postData));
+    printf("Payload content:\n%s\n", postData);
+    printf("=== End Payload ===\n");
+    fflush(stdout);
 
     strcpy(openai.last_finish_reason, "failed");
     openai.last_finish_reason_length = 0;
@@ -401,6 +557,12 @@ static int stream_openai(struct curl_slist *headers, const char *postData, long 
 
         /* we pass our 'chunk' struct to the callback function */
         curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&openai);
+        
+        /* Enable verbose output for debugging */
+        curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
+        
+        /* Don't fail on HTTP error codes so we can see the response */
+        curl_easy_setopt(curl_handle, CURLOPT_FAILONERROR, 0L);
 
         /* some servers do not like requests that are made without a user-agent
            field, so we provide one */
@@ -418,10 +580,6 @@ static int stream_openai(struct curl_slist *headers, const char *postData, long 
         /* disable progress meter, set to 0L to enable it */
         curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1L);
 
-        // A long parameter set to 1 tells the library to fail the request if the HTTP code returned is equal to
-        // or larger than 400
-        curl_easy_setopt(curl_handle, CURLOPT_FAILONERROR, 1L);
-
         openai.status = OPENAI_WAITING;
 
         /* write the page body to this file handle */
@@ -429,6 +587,25 @@ static int stream_openai(struct curl_slist *headers, const char *postData, long 
 
         /* get it! */
         CURLcode res = curl_easy_perform(curl_handle);
+
+        // Debug: Check curl result and HTTP response code
+        long response_code;
+        curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &response_code);
+        
+        printf("=== Curl Request Completed ===\n");
+        printf("Curl result: %d (%s)\n", res, curl_easy_strerror(res));
+        printf("HTTP response code: %ld\n", response_code);
+        
+        if (res != CURLE_OK) {
+            printf("Curl error: %s\n", curl_easy_strerror(res));
+        }
+        
+        if (response_code >= 400) {
+            printf("HTTP error: %ld\n", response_code);
+        }
+        
+        printf("=== End Curl Debug ===\n");
+        fflush(stdout);
 
         openai.status = OPENAI_END_OF_STREAM;
 
@@ -445,8 +622,17 @@ static void *openai_thread(void *arg)
     if (!streaming)
     {
         streaming = true;
-        pthread_mutex_unlock(&openai_mutex);
-        stream_openai(headers, openai_prompt, 5);
+        // pthread_mutex_unlock(&openai_mutex);  // Commented out to match callback changes
+        
+        // Debug: Show what we're passing to stream_openai
+        printf("=== OpenAI Thread Starting ===\n");
+        printf("Buffer index: %d\n", buffer_index);
+        printf("Buffer content length: %zu\n", strlen(openai_buffer));
+        printf("Buffer first 100 chars: %.100s\n", openai_buffer);
+        printf("=== Calling stream_openai ===\n");
+        fflush(stdout);
+        
+        stream_openai(headers, openai_buffer, 5);
         printf("openai_thread: stream_openai returned\n");
         streaming = false;
     }

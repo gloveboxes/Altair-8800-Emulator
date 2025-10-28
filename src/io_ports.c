@@ -172,9 +172,14 @@ uint8_t io_port_in(uint8_t port)
             break;
 
         // OpenAI IO Ports
-        case 120: // get streaming status
-        case 121: // get message
-        case 122: // get finished status
+        case 120: // Send API request / get status
+        case 121: // get buffer length low byte
+        case 122: // get buffer length high byte
+        case 123: // check if response data available
+        case 124: // read one byte from response
+        case 125: // check if response complete
+        case 126: // get finish reason length
+        case 127: // get finish reason byte
             retVal = openai_input(port);
             break;
 
