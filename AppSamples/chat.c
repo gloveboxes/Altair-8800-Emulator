@@ -202,7 +202,7 @@ int ch_init()
 int ch_load()
 {
     /* Use clean default system message */
-    strcpy(g_sysmsg, "You are a helpful assistant on Altair 8800. Be concise.\nYou must only use ASCII characters in all output. Do not include any letters with accents, emojis, or any characters outside the basic ASCII range.");
+    strcpy(g_sysmsg, "You are a helpful assistant on Altair 8800. Be concise.\nYou must only use 7-bit ASCII characters in all output. Do not include any letters with accents, emojis, or any characters outside the basic ASCII range.");
     return 0;
 }
 
