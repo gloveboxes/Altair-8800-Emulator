@@ -556,7 +556,7 @@ static int stream_openai(struct curl_slist *headers, const char *postData, long 
         curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&openai);
         
         /* Enable verbose output for debugging */
-        curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
+        curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 0L);
         
         /* Don't fail on HTTP error codes so we can see the response */
         curl_easy_setopt(curl_handle, CURLOPT_FAILONERROR, 0L);
@@ -624,7 +624,7 @@ static void *openai_thread(void *arg)
         printf("=== OpenAI Thread Starting ===\n");
         printf("Buffer index: %d\n", buffer_index);
         printf("Buffer content length: %zu\n", strlen(openai_buffer));
-        printf("Buffer first 100 chars: %.100s\n", openai_buffer);
+        printf("Buffer: %s\n", openai_buffer);
         printf("=== Calling stream_openai ===\n");
         fflush(stdout);
         openai.sse_buffer_len        = 0;

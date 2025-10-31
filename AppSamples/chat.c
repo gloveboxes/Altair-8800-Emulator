@@ -4,6 +4,7 @@
  * ============================================================
  */
 
+#include <stdio.h>
 #include "dxterm.h"
 #include "chatjson.h"
 
@@ -14,7 +15,7 @@
 
 /* Limits */
 #define MAX_MSG 10
-#define SYS_LEN 256
+#define SYS_LEN 1024
 #define REQ_LEN 8192
 
 /* OpenAI Status codes (like webget status codes) */
@@ -52,7 +53,6 @@ int g_amap[MAX_MSG];
 /* Function declarations */
 int ch_init();
 int ch_load();
-int ch_save();
 int ch_menu();
 int ch_chat();
 int ch_addm();
@@ -68,40 +68,6 @@ int ch_gus();
 int ch_fus();
 int ch_gas();
 int ch_fas();
-
-/* Simple string search for BDS C */
-char *findstr(haystack, needle)
-char *haystack;
-char *needle;
-{
-    char *h, *n;
-
-    while (*haystack)
-    {
-        h = haystack;
-        n = needle;
-
-        /* Compare characters */
-        while (*n && *h == *n)
-        {
-            h++;
-            n++;
-        }
-
-        /* Found complete match */
-        if (*n == 0)
-        {
-            return haystack;
-        }
-
-        haystack++;
-    }
-
-    return 0; /* Not found */
-}
-int ch_quit();
-
-/* File I/O - disabled for testing */
 
 /* String functions */
 int strlen();
@@ -130,7 +96,7 @@ main()
     /* Load system message */
     if (ch_load() < 0)
     {
-        printf("Warning: Using default system message\n");
+        return 1;
     }
 
     /* Main loop */
@@ -145,25 +111,25 @@ main()
             break;
         case 2:
             ch_show();
+            printf("Press any key to continue...");
+            x_conin();
             break;
         case 3:
             ch_clear();
-            break;
-        case 4:
-            ch_save();
+            printf("\nPress any key to continue...");
+            x_conin();
             break;
         case 0:
-            if (ch_quit())
-                return 0;
+            return 0;
             break;
         default:
             printf("Invalid choice\n");
             break;
         }
 
-        printf("Press any key to continue...");
+        /* printf("Press any key to continue...");
         x_conin();
-        printf("\n");
+        printf("\n"); */
     }
 
     return 0;
@@ -198,18 +164,35 @@ int ch_init()
     return 0;
 }
 
-/* Load system message - simplified for testing */
+/* Load system message from chat.sys */
 int ch_load()
 {
-    /* Use clean default system message */
-    strcpy(g_sysmsg, "You are a helpful assistant on Altair 8800. Be concise.\nYou must only use 7-bit ASCII characters in all output. Do not include any letters with accents, emojis, or any characters outside the basic ASCII range.");
-    return 0;
-}
+    FILE *fp;
+    int ch;
+    int idx;
 
-/* Save system message - simplified for testing */
-int ch_save()
-{
-    printf("Save function called (file I/O disabled for testing)\n");
+    fp = fopen("chat.sys", "r");
+    if (fp == 0)
+    {
+        printf("Error: Missing chat system instruction file 'chat.sys'\n");
+        return -1;
+    }
+
+    idx = 0;
+    while (idx < SYS_LEN - 1 && (ch = fgetc(fp)) != EOF)
+    {
+        if (ch == 26)
+        {
+            break;
+        }
+
+        /* Ensure stored system text stays in 7-bit ASCII */
+        g_sysmsg[idx++] = ch & 0x7F;
+    }
+    g_sysmsg[idx] = 0;
+
+    fclose(fp);
+
     return 0;
 }
 
@@ -225,12 +208,11 @@ int ch_menu()
     printf("1. Start Chat\n");
     printf("2. Show Messages\n");
     printf("3. Clear History\n");
-    printf("4. Save System Msg\n");
     printf("0. Quit\n\n");
     printf("Choice: ");
 
     choice = x_conin() - '0';
-    printf("%d\n\n", choice);
+    /* printf("%d\n\n", choice); */
 
     return choice;
 }
@@ -242,7 +224,9 @@ int ch_chat()
 
     x_clrsc();
     printf("=== Chat Session ===\n");
-    printf("Type 'quit' to exit, 'clear' to clear screen\n\n");
+    printf("Type 'quit' to exit, 'clear' to clear screen\n");
+    printf("System message:\n%s\n\n", g_sysmsg);
+
 
     while (1)
     {
@@ -418,7 +402,7 @@ int ch_clear()
         g_amap[i] = -1;
     }
     g_msgcnt = 0;
-    printf("Message history cleared\n");
+    printf("\nMessage history cleared\n");
     return 0;
 }
 
@@ -706,16 +690,4 @@ char *text;
         x_delay(0, 50); /* 50ms delay between characters */
     }
     return 0;
-}
-
-/* Quit confirmation */
-int ch_quit()
-{
-    int key;
-
-    printf("Are you sure you want to quit? (y/n): ");
-    key = x_conin();
-    printf("%c\n", key);
-
-    return (key == 'y' || key == 'Y');
 }
