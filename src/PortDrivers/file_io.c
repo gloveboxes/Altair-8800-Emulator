@@ -41,7 +41,7 @@ typedef struct
     size_t chunk_position;         // Current read position within chunk
     bool transfer_complete;        // True when curl transfer is complete
     char personal_endpoint[ENDPOINT_LEN];
-    char filename[15];
+    char filename[128];
     char url[150];
     enum WEBGET_STATUS status;
     int index;
@@ -50,7 +50,7 @@ typedef struct
 typedef struct
 {
     int fd;
-    char filename[15];
+    char filename[128];
     bool file_opened;
     bool enabled;
     bool end_of_file;
