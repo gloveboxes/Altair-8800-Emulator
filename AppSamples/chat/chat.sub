@@ -1,0 +1,18 @@
+era chatjson.*
+era chat.com
+era chat.c
+era chat.crl
+
+gf -f chat/chat.c
+gf -f chat/chat.sys
+gf -f chat/chatjson.c
+gf -f chat/chatjson.h
+
+
+cc chatjson
+cc chat
+clink chat chatjson dxterm dxsys dxtimer
+
+era chat.crl
+era chatjson.*
+era chat.c
