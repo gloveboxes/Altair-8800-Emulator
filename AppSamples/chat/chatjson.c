@@ -99,18 +99,29 @@ int outsize;
     int i;
     int prev_pos;
     char *msg_text;
+    char *cfg_model;
+    char *cfg_tokens;
+    char *cfg_temp;
     
     j_pos = 0;
     
     /* Use output buffer directly */
     j_buf = outbuf;
+
+    cfg_model = ch_getmdl();
+    cfg_tokens = ch_gettok();
+    cfg_temp = ch_gettmp();
     
     /* Clear buffer first */
     if (outsize > 0)
         j_buf[0] = 0;
     
     /* Build JSON using bounded append helpers */
-    if (j_add(j_buf, &j_pos, outsize, "{\"model\":\"gpt-4o-mini\",\"messages\":[") < 0)
+    if (j_add(j_buf, &j_pos, outsize, "{\"model\":\"") < 0)
+        return -1;
+    if (j_add(j_buf, &j_pos, outsize, cfg_model) < 0)
+        return -1;
+    if (j_add(j_buf, &j_pos, outsize, "\",\"messages\":[") < 0)
         return -1;
     if (j_add(j_buf, &j_pos, outsize, "{\"role\":\"system\",\"content\":\"") < 0)
         return -1;
@@ -193,8 +204,16 @@ int outsize;
         }
     }
     
-    /* Close JSON with streaming enabled */
-    if (j_add(j_buf, &j_pos, outsize, "],\"max_tokens\":512,\"temperature\":0.2,\"stream\":true}") < 0)
+    /* Close JSON with streaming enabled and configured params */
+    if (j_add(j_buf, &j_pos, outsize, "],\"max_tokens\":") < 0)
+        return -1;
+    if (j_add(j_buf, &j_pos, outsize, cfg_tokens) < 0)
+        return -1;
+    if (j_add(j_buf, &j_pos, outsize, ",\"temperature\":") < 0)
+        return -1;
+    if (j_add(j_buf, &j_pos, outsize, cfg_temp) < 0)
+        return -1;
+    if (j_add(j_buf, &j_pos, outsize, ",\"stream\":true}") < 0)
         return -1;
     
     /* Get final length */

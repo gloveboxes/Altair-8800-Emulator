@@ -5,6 +5,7 @@ era chat.crl
 
 gf -f chat/chat.c
 gf -f chat/chat.sys
+gf -f chat/chat.cfg
 gf -f chat/chatjson.c
 gf -f chat/chatjson.h
 

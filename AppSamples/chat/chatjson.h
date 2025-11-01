@@ -35,3 +35,8 @@ int j_match2();    /* Match string at pointer */
 
 /* JSON utility functions */
 int j_skip();      /* Skip whitespace */
+
+/* Config access helpers */
+char *ch_gettok();
+char *ch_gettmp();
+char *ch_getmdl();

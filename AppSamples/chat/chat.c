@@ -17,6 +17,9 @@
 #define MAX_MSG 10
 #define SYS_LEN 1024
 #define REQ_LEN 8192
+#define CFG_LINE 80
+#define CFG_VAL 16
+#define CFG_MLEN 32
 
 /* OpenAI Status codes (like webget status codes) */
 #define OPENAI_EOF 0
@@ -32,6 +35,9 @@ struct msg_s
 
 /* Global chat context - simplified for BDS C */
 char g_sysmsg[SYS_LEN];
+char g_mtok[CFG_VAL];
+char g_tempv[CFG_VAL];
+char g_model[CFG_MLEN];
 int g_types[MAX_MSG]; /* Renamed to avoid 7-char limit clash */
 int g_msgcnt;
 int g_cursor; /* Fixed spelling and length */
@@ -68,6 +74,11 @@ int ch_gus();
 int ch_fus();
 int ch_gas();
 int ch_fas();
+int ch_loadcfg();
+int ch_cfgln();
+int ch_settok();
+int ch_settmp();
+int ch_setmdl();
 
 /* String functions */
 int strlen();
@@ -83,8 +94,6 @@ main()
     int choice;
 
     x_clrsc();
-    printf("Altair 8800 Chat App v1.0\n");
-    printf("========================\n\n");
 
     /* Initialize chat context */
     if (ch_init() < 0)
@@ -142,6 +151,9 @@ int ch_init()
 
     /* Clear system message */
     g_sysmsg[0] = 0;
+    strcpy(g_mtok, "512");
+    strcpy(g_tempv, "0.2");
+    strcpy(g_model, "gpt-4o-mini");
 
     /* Clear message arrays */
     g_msgcnt = 0;
@@ -193,6 +205,240 @@ int ch_load()
 
     fclose(fp);
 
+    /* Load optional config (uses defaults if missing) */
+    ch_loadcfg();
+
+    return 0;
+}
+
+/* Parse chat.cfg for optional parameters */
+int ch_loadcfg()
+{
+    FILE *fp;
+    int ch;
+    int idx;
+    char line[CFG_LINE];
+
+    fp = fopen("chat.cfg", "r");
+    if (fp == 0)
+    {
+        return 0;
+    }
+
+    idx = 0;
+    while ((ch = fgetc(fp)) != EOF)
+    {
+        if (ch == 26)
+        {
+            break;
+        }
+
+        if (ch == '\r')
+        {
+            continue;
+        }
+
+        if (ch == '\n')
+        {
+            line[idx] = 0;
+            if (idx > 0)
+                ch_cfgln(line);
+            idx = 0;
+            continue;
+        }
+
+        if (idx < CFG_LINE - 1)
+        {
+            line[idx++] = ch & 0x7F;
+        }
+    }
+
+    if (idx > 0)
+    {
+        line[idx] = 0;
+        ch_cfgln(line);
+    }
+
+    fclose(fp);
+
+    return 0;
+}
+
+/* Handle a single config line */
+int ch_cfgln(line)
+char *line;
+{
+    char key[CFG_VAL];
+    char val[CFG_LINE];
+    char *ptr;
+    int i;
+
+    ptr = line;
+
+    /* Skip leading whitespace */
+    while (*ptr == ' ' || *ptr == '\t')
+        ptr++;
+
+    if (*ptr == 0 || *ptr == '#')
+        return 0;
+
+    i = 0;
+    while (*ptr && *ptr != '=' && *ptr != ' ' && *ptr != '\t')
+    {
+        if (i < CFG_VAL - 1)
+            key[i++] = *ptr;
+        ptr++;
+    }
+    key[i] = 0;
+
+    while (*ptr && *ptr != '=')
+        ptr++;
+    if (*ptr != '=')
+        return 0;
+    ptr++;
+
+    while (*ptr == ' ' || *ptr == '\t')
+        ptr++;
+
+    i = 0;
+    while (*ptr && *ptr != '#' && *ptr != '\n' && *ptr != '\r')
+    {
+        if (*ptr == ' ' || *ptr == '\t')
+            break;
+        if (i < CFG_LINE - 1)
+            val[i++] = *ptr;
+        ptr++;
+    }
+    val[i] = 0;
+
+    if (val[0] == 0)
+        return 0;
+
+    if (strcmp(key, "max_tokens") == 0)
+        ch_settok(val);
+    else if (strcmp(key, "temperature") == 0)
+        ch_settmp(val);
+    else if (strcmp(key, "model") == 0)
+        ch_setmdl(val);
+
+    return 0;
+}
+
+/* Validate and store max_tokens */
+int ch_settok(val)
+char *val;
+{
+    int i;
+    int j;
+    char tmp[CFG_VAL];
+
+    j = 0;
+    for (i = 0; val[i]; i++)
+    {
+        if (val[i] >= '0' && val[i] <= '9')
+        {
+            if (j < CFG_VAL - 1)
+                tmp[j++] = val[i];
+        }
+        else
+        {
+            break;
+        }
+    }
+    tmp[j] = 0;
+
+    if (j > 0)
+        strcpy(g_mtok, tmp);
+
+    return 0;
+}
+
+/* Validate and store temperature */
+int ch_settmp(val)
+char *val;
+{
+    int i;
+    int j;
+    int dot;
+    char tmp[CFG_VAL];
+
+    j = 0;
+    dot = 0;
+    for (i = 0; val[i]; i++)
+    {
+        if (val[i] >= '0' && val[i] <= '9')
+        {
+            if (j < CFG_VAL - 1)
+                tmp[j++] = val[i];
+        }
+        else if (val[i] == '.' && dot == 0)
+        {
+            if (j < CFG_VAL - 1)
+                tmp[j++] = val[i];
+            dot = 1;
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    while (j > 0 && tmp[j - 1] == '.')
+        j--;
+    tmp[j] = 0;
+
+    if (j > 0)
+        strcpy(g_tempv, tmp);
+
+    return 0;
+}
+
+char *ch_gettok()
+{
+    return g_mtok;
+}
+
+char *ch_gettmp()
+{
+    return g_tempv;
+}
+
+char *ch_getmdl()
+{
+    return g_model;
+}
+
+/* Validate and store model name */
+int ch_setmdl(val)
+char *val;
+{
+    int i;
+    int j;
+    int ch;
+    char tmp[CFG_MLEN];
+
+    j = 0;
+    for (i = 0; val[i]; i++)
+    {
+        ch = val[i] & 0x7F;
+        if ((ch >= 'a' && ch <= 'z') ||
+            (ch >= 'A' && ch <= 'Z') ||
+            (ch >= '0' && ch <= '9') ||
+            ch == '-' || ch == '_' || ch == '.')
+        {
+            if (j < CFG_MLEN - 1)
+                tmp[j++] = ch;
+        }
+        else
+        {
+            break;
+        }
+    }
+    tmp[j] = 0;
+
+    if (j > 0)
+        strcpy(g_model, tmp);
+
     return 0;
 }
 
@@ -204,7 +450,8 @@ int ch_menu()
     x_clrsc();
     x_curmv(1, 1);
 
-    printf("=== Chat Menu ===\n\n");
+    printf("Altair 8800 Chat App v1.2\n");
+    printf("=========================\n\n");
     printf("1. Start Chat\n");
     printf("2. Show Messages\n");
     printf("3. Clear History\n");
