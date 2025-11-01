@@ -12,7 +12,7 @@ gf -f chat/chatjson.h
 
 cc chatjson
 cc chat
-clink chat chatjson dxterm dxsys dxtimer
+clink chat chatjson dxterm dxtimer
 
 era chat.crl
 era chatjson.*

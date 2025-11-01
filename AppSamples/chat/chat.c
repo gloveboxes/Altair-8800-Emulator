@@ -8,6 +8,8 @@
 #include "dxterm.h"
 #include "chatjson.h"
 
+#define CHAT_VERSION "1.5"
+
 /* Message types */
 #define MSG_SYS 0
 #define MSG_USR 1
@@ -65,9 +67,7 @@ int ch_addm();
 int ch_show();
 int ch_clear();
 int ch_api();
-int ch_send();
 int ch_recv();
-int ch_type();
 int ch_copy();
 int ch_print();
 int ch_gus();
@@ -450,7 +450,7 @@ int ch_menu()
     x_clrsc();
     x_curmv(1, 1);
 
-    printf("Altair 8800 Chat App v1.2\n");
+    printf("Altair 8800 Chat App v%s\n", CHAT_VERSION);
     printf("=========================\n\n");
     printf("1. Start Chat\n");
     printf("2. Show Messages\n");
@@ -701,7 +701,7 @@ int ch_api()
     outp(122, 1);
 
     /* Small delay to ensure reset completes */
-    x_delay(0, 10);
+    /* x_delay(0, 10); */
 
     /* Send each character of JSON payload */
     for (i = 0; i < reqlen; i++)
@@ -744,28 +744,6 @@ int ch_api()
     }
 
     return 0;
-}
-
-/* Simulate sending data byte by byte via I/O ports */
-int ch_send(data, len)
-char *data;
-int len;
-{
-    int i;
-
-    /* Simulate sending to OpenAI via port operations */
-    for (i = 0; i < len; i++)
-    {
-        /* In real implementation, would use outp() to send bytes */
-        /* For simulation, just add small delays */
-        if (i % 10 == 0)
-        {
-            printf(".");
-            x_delay(0, 50);
-        }
-    }
-    printf(" sent\n");
-    return len;
 }
 
 /* Receive streaming response content via I/O ports */
@@ -923,18 +901,6 @@ char *text;
         if (ch == '\n')
             x_conout('\r');
         x_conout(ch);
-    }
-    return 0;
-}
-
-/* Display text with typing effect */
-int ch_type(text)
-char *text;
-{
-    while (*text)
-    {
-        printf("%c", *text++);
-        x_delay(0, 50); /* 50ms delay between characters */
     }
     return 0;
 }
