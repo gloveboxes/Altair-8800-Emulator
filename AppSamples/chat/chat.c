@@ -301,13 +301,26 @@ char *line;
         ptr++;
 
     i = 0;
-    while (*ptr && *ptr != '#' && *ptr != '\n' && *ptr != '\r')
+    if (strcmp(key, "model") == 0)
     {
-        if (*ptr == ' ' || *ptr == '\t')
-            break;
-        if (i < CFG_LINE - 1)
-            val[i++] = *ptr;
-        ptr++;
+        /* For model, allow full line except comment */
+        while (*ptr && *ptr != '#' && *ptr != '\n' && *ptr != '\r')
+        {
+            if (i < CFG_LINE - 1)
+                val[i++] = *ptr;
+            ptr++;
+        }
+    }
+    else
+    {
+        while (*ptr && *ptr != '#' && *ptr != '\n' && *ptr != '\r')
+        {
+            if (*ptr == ' ' || *ptr == '\t')
+                break;
+            if (i < CFG_LINE - 1)
+                val[i++] = *ptr;
+            ptr++;
+        }
     }
     val[i] = 0;
 
@@ -424,7 +437,7 @@ char *val;
         if ((ch >= 'a' && ch <= 'z') ||
             (ch >= 'A' && ch <= 'Z') ||
             (ch >= '0' && ch <= '9') ||
-            ch == '-' || ch == '_' || ch == '.')
+            ch == '-' || ch == '_' || ch == '.' || ch == '/')
         {
             if (j < CFG_MLEN - 1)
                 tmp[j++] = ch;
