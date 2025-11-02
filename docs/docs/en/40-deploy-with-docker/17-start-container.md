@@ -21,6 +21,7 @@ You can enable advanced features by setting environment variables. These options
 
 - Set the time zone.
 - Connect to an MQTT broker to publish Altair address and data bus information.
+- Integrate with OpenAI Chat Completions
 - Connect to the Open Weather Map service for current weather data.
 - Run on a Raspberry Pi with a Pi Sense HAT to display address and data bus info on the 8x8 LED panel.
 
