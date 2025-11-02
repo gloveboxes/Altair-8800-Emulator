@@ -556,7 +556,7 @@ static void InitPeripheralAndHandlers(int argc, char *argv[])
 
     if (!dx_isStringNullOrEmpty(altair_config.openai_api_key))
     {
-        init_openai(altair_config.openai_api_key);
+        init_openai(altair_config.openai_api_key, altair_config.openai_endpoint);
     }
 
     dx_Log_Debug("Network interface %s %s\n", network_interface, dx_isNetworkConnected(network_interface) ? "connected" : "NOT connected");

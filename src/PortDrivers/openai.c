@@ -40,7 +40,7 @@ static int stream_openai(struct curl_slist *headers, const char *postData, long 
 static void *openai_thread(void *arg);
 static bool send_openai_message(void);
 
-static const char *openai_endpoint = "https://api.openai.com/v1/chat/completions";
+static const char *openai_endpoint = NULL;
 static struct curl_slist *headers  = NULL;
 static bool streaming              = false;
 
@@ -99,7 +99,7 @@ static bool ensure_sse_capacity(OPENAI_T *chat, size_t additional)
     chat->sse_buffer_capacity = new_capacity;
     return true;
 }
-void init_openai(const char *openai_api_key)
+void init_openai(const char *openai_api_key, const char *endpoint)
 {
     if (!headers)
     {
@@ -113,6 +113,16 @@ void init_openai(const char *openai_api_key)
         printf("=== OpenAI Auth Header ===\n");
         printf("%s\n", auth);
         printf("=== End Auth Header ===\n");
+        fflush(stdout);
+    }
+    
+    // Set the endpoint
+    if (endpoint != NULL && strlen(endpoint) > 0)
+    {
+        openai_endpoint = endpoint;
+        printf("=== OpenAI Endpoint ===\n");
+        printf("Using endpoint: %s\n", openai_endpoint);
+        printf("=== End Endpoint ===\n");
         fflush(stdout);
     }
 }

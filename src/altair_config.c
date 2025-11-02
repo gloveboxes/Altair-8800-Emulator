@@ -29,6 +29,9 @@ static const char *cmdLineArgsUsageText =
 	"External Services:\n"
 	"  -o, --OpenWeatherMapKey <key>  OpenWeatherMap API key\n"
 	"  -a, --OpenAIKey <key>          OpenAI API key\n"
+	"  -e, --OpenAIEndpoint <url>     OpenAI-compatible API endpoint\n"
+	"                                 (default: https://api.openai.com/v1/chat/completions)\n"
+	"                                 Use http://localhost:1234/v1/chat/completions for LM Studio\n"
 	"\n"
 	"Help:\n"
 	"  -h, --help                     Show this help message\n"
@@ -88,6 +91,7 @@ bool parse_altair_cmd_line_arguments(int argc, char *argv[], ALTAIR_CONFIG_T *al
 		{.name = "FrontPanel", .has_arg = required_argument, .flag = NULL, .val = 'f'},
 		{.name = "OpenWeatherMapKey", .has_arg = required_argument, .flag = NULL, .val = 'o'},
 		{.name = "OpenAIKey", .has_arg = required_argument, .flag = NULL, .val = 'a'},
+		{.name = "OpenAIEndpoint", .has_arg = required_argument, .flag = NULL, .val = 'e'},
 		{.name = "help", .has_arg = no_argument, .flag = NULL, .val = 'h'}};
 
 	altair_config->user_config.connectionType = DX_CONNECTION_TYPE_MQTT;
@@ -98,6 +102,7 @@ bool parse_altair_cmd_line_arguments(int argc, char *argv[], ALTAIR_CONFIG_T *al
 	altair_config->user_config.mqtt_username = NULL;
 	altair_config->user_config.mqtt_password = NULL;
 	altair_config->front_panel_selection      = FRONT_PANEL_SELECTION_NONE;
+	altair_config->openai_endpoint = "https://api.openai.com/v1/chat/completions";
 	
 	// Generate a unique client ID with timestamp to avoid conflicts
 	static char unique_client_id[64];
@@ -108,7 +113,7 @@ bool parse_altair_cmd_line_arguments(int argc, char *argv[], ALTAIR_CONFIG_T *al
 	// Loop over all of the options.
 	bool front_panel_option_set = false;
 
-	while ((option = getopt_long(argc, argv, "m:p:c:U:P:n:f:o:a:h", cmdLineOptions, NULL)) != -1)
+	while ((option = getopt_long(argc, argv, "m:p:c:U:P:n:f:o:a:e:h", cmdLineOptions, NULL)) != -1)
 	{
 		// Check if arguments are missing. Every option requires an argument.
 		if (optarg != NULL && optarg[0] == '-')
@@ -140,12 +145,15 @@ bool parse_altair_cmd_line_arguments(int argc, char *argv[], ALTAIR_CONFIG_T *al
 			altair_config->front_panel_selection = parse_front_panel_selection(optarg, FRONT_PANEL_SELECTION_NONE);
 			front_panel_option_set              = true;
 			break;
-			case 'o':
-				altair_config->open_weather_map_api_key = optarg;
-				break;
+		case 'o':
+			altair_config->open_weather_map_api_key = optarg;
+			break;
 			// ...existing code...
 			case 'a':
 				altair_config->openai_api_key = optarg;
+				break;
+			case 'e':
+				altair_config->openai_endpoint = optarg;
 				break;
 			case 'h':
 				printf("%s\n", cmdLineArgsUsageText);
