@@ -38,6 +38,7 @@ Open the `altair.env` file in a text editor and set the environment variables yo
 | MQTT_HOST | MQTT broker host |
 | MQTT_PORT | MQTT broker port (default: 1883) |
 | MQTT_CLIENT_ID | Unique MQTT client ID |
+| OPENAI_API_KEY | OpenAI API Keuy |
 | OPEN_WEATHER_MAP_API_KEY | API key for Open Weather Map |
 | FRONT_PANEL | Front panel type (sensehat, kit, none; default: none) |
 
@@ -68,6 +69,12 @@ In ThingsBoard, create an MQTT device to represent your Altair emulator. Use the
 Connect to the Open Weather Map service for current weather information. Set:
 
 - OPEN_WEATHER_MAP_API_KEY=`YOUR_OPEN_WEATHER_MAP_API_KEY` (get a free API key at [Open Weather Map](https://openweathermap.org/api){:target=_blank})
+
+### OpenAI Chat Key
+
+Configure your OpenAI API Key
+
+- OPENAI_API_KEY
 
 ### Raspberry Pi with Pi Sense HAT
 
