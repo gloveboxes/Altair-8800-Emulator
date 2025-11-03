@@ -62,7 +62,7 @@ RUN groupadd -r altair \
 COPY --from=builder /Altair-8800-Emulator/src/build/Altair_emulator /usr/local/bin/
 COPY --from=builder /Altair-8800-Emulator/Terminal /app/Terminal
 COPY --from=builder /Altair-8800-Emulator/src/Disks /app/Disks
-COPY --from=builder /Altair-8800-Emulator/src/AppSamples /app/AppSamples
+COPY --from=builder /Altair-8800-Emulator/AppSamples /app/AppSamples
 
 # Copy startup script
 COPY altair.sh /app/altair.sh
