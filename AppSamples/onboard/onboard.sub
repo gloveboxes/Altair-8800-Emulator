@@ -1,0 +1,14 @@
+gf -f sdk/dxtimer.c
+gf -f sdk/dxtimer.h
+
+cc dxtimer
+
+gf -f onboard/onboard.c
+
+cc onboard
+clink onboard dxtimer long
+
+a:pip a:onboard.com=onboard.com
+
+era onboard.*
+era dx*.*

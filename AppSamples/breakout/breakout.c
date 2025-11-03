@@ -691,7 +691,7 @@ int main()
 
         /* Use timer loop like onboard - start timer and check for input while waiting */
         x_tmrset(TIMER_ID, DELAY_MS);
-        while (x_tmrexp(TIMER_ID) && running)
+        while (!x_tmrexp(TIMER_ID) && running)
         {
             /* Check for keyboard input during timer wait - like onboard pattern */
             if (check_key_ready())

@@ -1,0 +1,6 @@
+gf -f vibe/vibe.asm
+d:asm vibe
+d:load vibe
+a:pip a:vibe.com=vibe.com
+
+era vibe.*

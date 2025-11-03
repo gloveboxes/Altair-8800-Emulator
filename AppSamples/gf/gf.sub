@@ -1,0 +1,5 @@
+gf -f gf/gf.c
+cc gf
+clink gf
+
+era gf.crl

@@ -1,0 +1,19 @@
+gf -f sdk/dxtimer.c
+gf -f sdk/dxtimer.h
+
+gf -f sdk/dxterm.c
+gf -f sdk/dxterm.h
+
+gf -f sdk/dxsys.c
+gf -f sdk/dxsys.h
+
+gf -f tetris/tetris.c
+
+cc dxterm
+cc dxtimer
+cc dxsys
+cc tetris
+
+clink tetris dxterm dxtimer dxsys
+
+era dx*.*

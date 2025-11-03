@@ -1,0 +1,16 @@
+gf -f sdk/dxtimer.c
+gf -f sdk/dxtimer.h
+gf -f sdk/dxterm.c
+gf -f sdk/dxterm.h
+
+gf -f snake/snake.c
+
+cc dxtimer
+cc dxterm
+cc snake
+clink snake dxterm dxtimer
+
+a:pip a:snake.com=snake.com
+
+era snake.*
+era dx*.*

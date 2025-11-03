@@ -9,9 +9,17 @@ gf -f chat/chat.cfg
 gf -f chat/chatjson.c
 gf -f chat/chatjson.h
 
+gf -f sdk/dxtimer.c
+gf -f sdk/dxtimer.h
 
+gf -f sdk/dxterm.c
+gf -f sdk/dxterm.h
+
+cc dxterm
+cc dxtimer
 cc chatjson
 cc chat
+
 clink chat chatjson dxterm dxtimer
 
 a:pip a:chat.com=chat.com
@@ -20,9 +28,10 @@ a:pip a:chat.cfg=chat.cfg
 
 era chat.crl
 era chatjson.*
+era dxterm.*
+era dxtimer.*
+
 era chat.c
 era chat.com
 era chat.cfg
 era chat.sys
-a:
-chat
