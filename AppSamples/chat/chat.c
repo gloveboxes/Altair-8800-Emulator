@@ -509,6 +509,10 @@ int ch_chat()
             printf("=== Chat Session ===\n\n");
             continue;
         }
+        else if (strcmp(input, "") == 0)
+        {
+            continue;
+        }
 
         /* Add user message */
         ch_addm(MSG_USR, input);
@@ -785,7 +789,7 @@ int echo;
             /* Read all available characters from current chunk */
             while (status == 2 && pos < bufsize - 1)
             {
-                ch = inp(124);
+                ch = inp(124) & 0x7F;
                 buffer[pos++] = ch;
 
                 if (echo)
