@@ -1,0 +1,17 @@
+gf -f sdk/string.c
+gf -f sdk/string.h
+gf -f sdk/stringt.c
+gf -f sdk/dxsys.c
+gf -f sdk/dxsys.h  
+
+era stringt
+
+cc dxsys
+cc string
+cc stringt 
+clink stringt string dxsys
+
+era string.c
+era dxsys.* 
+stringt
+era stringt.*
