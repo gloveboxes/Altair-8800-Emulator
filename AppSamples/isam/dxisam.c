@@ -1,47 +1,13 @@
 /* DXISAM2.C - ISAM Library V2 with Table Support - Low-Level I/O */
 #include "stdio.h"
+#include "dxisam.h"
 
-#define I_MXNM 16
-#define I_MXTBL 3     /* Now try 3 tables */
-#define I_MXKEY 4
-#define I_RECSZ 128
-#define I_OK 0
-#define I_EOPEN -1
-#define I_EWRIT -3
-#define I_ENTBL -4    /* Table not found */
-#define I_ESIZE -5    /* Record size mismatch */
-#define I_EREAD -6    /* Record read failed */
-#define I_ENREC -7    /* Invalid record number */
-#define I_EUPDT -8    /* Record update failed */
-#define I_DELFLAG 0xFF /* Deleted record marker */
+struct i_db g_cfg;
 
 /* Low-level I/O buffer size in sectors */
 #define I_NSECTS 8
 #define I_SECSZ 128
 #define I_BUFSZ (I_NSECTS * I_SECSZ)
-
-/* Table descriptor */
-struct i_tbl {
-    char name[I_MXNM];
-    char disk;
-    int recsz;
-    int nkeys;
-    int keyoff[I_MXKEY];
-    int keysz[I_MXKEY];
-    int nrecs;
-    int maxrec;
-};
-
-/* Database config */
-struct i_db {
-    char dbname[I_MXNM];
-    int ntbls;
-    struct i_tbl tbls[I_MXTBL];
-    char pad[128];
-};
-
-/* GLOBAL structure */
-struct i_db g_cfg;
 
 int i_cfwr(fname)
 char *fname;

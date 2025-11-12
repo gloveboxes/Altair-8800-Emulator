@@ -1,42 +1,12 @@
 /* Test i_insrt - insert records */
 #include "stdio.h"
+#include "string.h"
+#include "dxisam.h"
 
-#define I_MXNM 16
-int i_uprec();
-int i_delrec();
-#define I_MXTBL 3
-#define I_MXKEY 4
-#define I_OK 0
-/* Match the library's I_ENREC (-7) so deleted physical slots are skipped correctly */
-#define I_ENREC -7
-#define I_RNUM 1000
-
-struct i_tbl {
-    char name[I_MXNM];
-    char disk;
-    int recsz;
-    int nkeys;
-    int keyoff[I_MXKEY];
-    int keysz[I_MXKEY];
-    int nrecs;
-    int maxrec;
-};
-
-struct i_db {
-    char dbname[I_MXNM];
-    int ntbls;
-    struct i_tbl tbls[I_MXTBL];
-    char pad[128];
-};
-
-/* External references */
 struct i_db g_cfg;
-int i_cfwr();
-int i_cfrd();
-int i_mktbl();
-int i_insrt();
-int i_rdrec();
-int i_rdphys();
+
+/* Number of initial records inserted during the test */
+#define I_RNUM 1000
 
 main()
 {
@@ -52,22 +22,14 @@ main()
     for (i = 0; i < I_MXNM; i++)
         g_cfg.dbname[i] = 0;
     
-    g_cfg.dbname[0] = 'T';
-    g_cfg.dbname[1] = 'E';
-    g_cfg.dbname[2] = 'S';
-    g_cfg.dbname[3] = 'T';
-    g_cfg.dbname[4] = '8';
+    strncpy(g_cfg.dbname, "ISAMTST", I_MXNM);
     g_cfg.ntbls = 1;
     
     /* Table: NAMES on disk A, 32-byte records */
     for (i = 0; i < I_MXNM; i++)
         g_cfg.tbls[0].name[i] = 0;
     
-    g_cfg.tbls[0].name[0] = 'N';
-    g_cfg.tbls[0].name[1] = 'A';
-    g_cfg.tbls[0].name[2] = 'M';
-    g_cfg.tbls[0].name[3] = 'E';
-    g_cfg.tbls[0].name[4] = 'S';
+    strncpy(g_cfg.tbls[0].name, "NAMES", I_MXNM);
     g_cfg.tbls[0].disk = 'C';
     g_cfg.tbls[0].recsz = 32;
     g_cfg.tbls[0].nkeys = 1;
@@ -86,7 +48,7 @@ main()
         g_cfg.dbname, g_cfg.tbls[0].name, g_cfg.tbls[0].recsz);
     
     /* Save config */
-    if (i_cfwr("TEST8.CFG") != I_OK)
+    if (i_cfwr("ISAMTST.CFG") != I_OK)
     {
         puts("Config write failed");
         return 1;
@@ -336,7 +298,7 @@ main()
         putchar('\n');
     }
 
-    if (i_cfwr("TEST8.CFG") != I_OK)
+    if (i_cfwr("ISAMTST.CFG") != I_OK)
     {
         puts("Config update failed");
         return 1;
@@ -345,7 +307,7 @@ main()
     /* Verify counts survive reload */
     g_cfg.tbls[0].nrecs = 0;
     g_cfg.tbls[0].maxrec = 0;
-    if (i_cfrd("TEST8.CFG") != I_OK)
+    if (i_cfrd("ISAMTST.CFG") != I_OK)
     {
         puts("Config reload failed");
         return 1;

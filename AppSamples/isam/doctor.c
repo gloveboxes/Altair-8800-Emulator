@@ -1,39 +1,19 @@
 #include "stdio.h"
 #include "string.h"
+#include "dxisam.h"
+
+#define RECORD_SIZE 81
+
+struct i_db g_cfg;
 
 #define P_IDLN 5
 #define P_NMLN 16
 #define P_ADLN 40
-#define P_CNT 60
+#define P_CNT 600
 #define F_CNT 20
 #define L_CNT 20
 #define S_CNT 10
 #define G_CNT 3
-
-#define I_MXNM 16
-#define I_MXTBL 3
-#define I_MXKEY 4
-#define I_OK 0
-#define I_ENREC -7
-#define RECORD_SIZE 81
-
-struct i_tbl {
-    char name[I_MXNM];
-    char disk;
-    int recsz;
-    int nkeys;
-    int keyoff[I_MXKEY];
-    int keysz[I_MXKEY];
-    int nrecs;
-    int maxrec;
-};
-
-struct i_db {
-    char dbname[I_MXNM];
-    int ntbls;
-    struct i_tbl tbls[I_MXTBL];
-    char pad[128];
-};
 
 struct patient
 {
@@ -44,15 +24,6 @@ struct patient
     int age;
     char gender;
 };
-
-struct i_db g_cfg;
-int i_cfwr();
-int i_mktbl();
-int i_insrt();
-int i_rdrec();
-int i_rdphys();
-int i_uprec();
-int i_delrec();
 
 int readback();
 int do_updates();
