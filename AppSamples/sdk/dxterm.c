@@ -70,14 +70,14 @@ int x_curmv(row, col)
 int row;
 int col;
 {
-    printf("%c[%d;%dH", XK_ESC, row, col);
+    printf("\033[%d;%dH", row, col);
     return 0;
 }
 
 /* x_clrsc() - Clear screen and reset attributes. */
 int x_clrsc()
 {
-    printf("%c[2J%c[0m", XK_ESC, XK_ESC);
+    printf("\033[2J\033[0m");
     x_curmv(1, 1);
     return 0;
 }
@@ -85,14 +85,14 @@ int x_clrsc()
 /* x_hidcr() - Hide the terminal cursor. */
 int x_hidcr()
 {
-    printf("%c[?25l", XK_ESC);
+    printf("\033[?25l");
     return 0;
 }
 
 /* x_shwcr() - Show the terminal cursor. */
 int x_shwcr()
 {
-    printf("%c[?25h", XK_ESC);
+    printf("\033[?25h");
     return 0;
 }
 
@@ -180,20 +180,20 @@ int code;
 int x_setcol(code)
 int code;
 {
-    printf("%c[%dm", XK_ESC, code);
+    printf("\033[%dm", code);
     return 0;
 }
 
 /* x_rstcol() - Reset all color and text attributes. */
 int x_rstcol()
 {
-    printf("%c[0m", XK_ESC);
+    printf("\033[0m");
     return 0;
 }
 
 /* x_erseol() - Erase from cursor to end of line. */
 int x_erseol()
 {
-    printf("%c[K", XK_ESC);
+    printf("\033[K");
     return 0;
 }
