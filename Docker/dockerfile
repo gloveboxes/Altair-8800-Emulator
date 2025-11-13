@@ -73,7 +73,7 @@ WORKDIR /app
 RUN chown -R altair:altair /app
 USER altair
 
-EXPOSE 8082 80
+EXPOSE 8082 8080
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:80/ || exit 1

@@ -2,7 +2,7 @@
 
 # Start web server for Terminal interface
 cd /app/Terminal 
-python3 -m http.server 80 &
+python3 -m http.server 8080 &
 WEB_PID=$!
 
 # Change to app directory
