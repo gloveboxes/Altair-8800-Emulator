@@ -35,7 +35,6 @@ void init_web_socket_server(void (*client_connected_cb)(void));
 // Output Functions
 // =============================================================================
 
-void publish_character(char character);
 void publish_message(const void *application_message, size_t application_message_length);
 
 // =============================================================================

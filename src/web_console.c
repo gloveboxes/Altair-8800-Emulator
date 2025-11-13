@@ -20,7 +20,8 @@ extern intel8080_t cpu;
 // Constants and Configuration
 // =============================================================================
 
-#define TERMINAL_INPUT_BUFFER_SIZE 256
+#define TERMINAL_INPUT_BUFFER_SIZE 128
+#define COMMAND_BUFFER_SIZE        30
 
 // =============================================================================
 // Type Definitions
@@ -40,7 +41,7 @@ typedef struct
 // Static Variables
 // =============================================================================
 
-// Terminal input queue
+// Terminal input queue (for CPU_RUNNING mode)
 static terminal_input_queue_t terminal_input_queue = {
     .buffer = {0},
     .head   = 0,
@@ -49,12 +50,15 @@ static terminal_input_queue_t terminal_input_queue = {
     .mutex  = PTHREAD_MUTEX_INITIALIZER,
 };
 
+// Command buffer for CPU_STOPPED mode
+static char command_buffer[COMMAND_BUFFER_SIZE] = {0};
+static size_t command_buffer_length             = 0;
+
 // WebSocket client management
 static atomic_uintptr_t current_client = 0;
 static void (*_client_connected_cb)(void);
 
 // Session management
-static bool cleanup_required     = false;
 static const int session_minutes = 1 * 60 * 30; // 30 minutes
 
 #ifdef ALTAIR_CLOUD
@@ -66,7 +70,6 @@ static struct timeval ws_timeout = {0, 250 * 1000};
 // =============================================================================
 
 static DX_DECLARE_TIMER_HANDLER(expire_session_handler);
-static void cleanup_session(void);
 static inline size_t terminal_queue_capacity(void);
 static void handle_websocket_error(ws_cli_conn_t client, const char *error_msg);
 
@@ -84,23 +87,6 @@ static DX_TIMER_BINDING tmr_expire_session = {
 // =============================================================================
 
 /// <summary>
-/// Clean up session resources
-/// </summary>
-static void cleanup_session(void)
-{
-#ifdef ALTAIR_CLOUD
-    set_cpu_operating_mode(CPU_STOPPED);
-
-    // Sleep this thread so the Altair CPU thread can complete current instruction
-    nanosleep(&(struct timespec){0, 250 * ONE_MS}, NULL);
-
-    load_boot_disk();
-    clear_difference_disk();
-#endif
-    cleanup_required = false;
-}
-
-/// <summary>
 /// Centralized WebSocket error handling
 /// </summary>
 /// <param name="client">WebSocket client connection</param>
@@ -110,10 +96,6 @@ static void handle_websocket_error(ws_cli_conn_t client, const char *error_msg)
     printf("%s\n", error_msg);
     ws_close_client(client);
     atomic_store(&current_client, 0);
-    if (cleanup_required)
-    {
-        cleanup_session();
-    }
 }
 
 // =============================================================================
@@ -130,7 +112,6 @@ static DX_TIMER_HANDLER(expire_session_handler)
     {
         ws_close_client(client);
     }
-    cleanup_session();
 }
 DX_TIMER_HANDLER_END
 
@@ -186,19 +167,6 @@ void publish_message(const void *message, size_t message_length)
     {
         handle_websocket_error(client, "ws_sendframe failed - connection may be broken");
     }
-}
-
-/// <summary>
-/// Publish a single character to the WebSocket client
-/// </summary>
-/// <param name="character">Character to send</param>
-inline void publish_character(char character)
-{
-    // print to stdout for debugging
-    // the text is not appearing in vs code terminal?
-    fflush(stdout);
-    dx_Log_Debug("%c", character);
-    publish_message(&character, 1);
 }
 
 // =============================================================================
@@ -277,8 +245,6 @@ void clear_terminal_input_queue(void)
     pthread_mutex_unlock(&terminal_input_queue.mutex);
 }
 
-
-
 /// <summary>
 /// Enqueue characters for the CPU
 /// </summary>
@@ -316,83 +282,33 @@ bool terminal_enqueue_input_command(const char *characters, size_t length)
 // =============================================================================
 
 /// <summary>
-/// Handle enter key press in terminal
-/// </summary>
-/// <param name="data">Input data buffer</param>
-/// <param name="cpu_mode">Current CPU operating mode</param>
-/// <returns>true if handled and should cleanup, false to continue processing</returns>
-static bool handle_enter_key(char *data, CPU_OPERATING_MODE cpu_mode)
-{
-    switch (cpu_mode)
-    {
-        case CPU_RUNNING:
-            enqueue_terminal_input_character(0x0d);
-            break;
-        case CPU_STOPPED:
-            data[0] = 0x00;
-            process_virtual_input(data);
-            break;
-        default:
-            break;
-    }
-    return true;
-}
-
-/// <summary>
-/// Handle control character input
+/// Handle control character input (CTRL-M for mode toggle)
 /// </summary>
 /// <param name="data">Input character</param>
 /// <param name="application_message_size">Size of the message</param>
-/// <returns>true if handled and should cleanup, false to continue processing</returns>
+/// <returns>true if handled, false to continue processing</returns>
 static bool handle_ctrl_character(char *data, size_t application_message_size)
 {
     char c = data[0];
 
-    if (application_message_size == 1 && c > 0 && c < 29) // ASCII_CTRL_MAX
+    if (application_message_size > 0 && c == 28) // CTRL_M_MAPPED_VALUE - ctrl-m mapped to ASCII 28 to avoid /r
     {
-        if (c == 28) // CTRL_M_MAPPED_VALUE - ctrl-m mapped to ASCII 28 to avoid /r
+        CPU_OPERATING_MODE new_mode = toggle_cpu_operating_mode();
+        if (new_mode == CPU_STOPPED)
         {
-            CPU_OPERATING_MODE new_mode = toggle_cpu_operating_mode();
-            if (new_mode == CPU_STOPPED)
-            {
-                extern uint16_t bus_switches;
-                extern intel8080_t cpu;
-                bus_switches = cpu.address_bus;
-                publish_message("\r\nCPU MONITOR> ", 15);
-                return true;
-            }
-            c = 0x0d;
-        }
+            extern uint16_t bus_switches;
+            extern intel8080_t cpu;
+            bus_switches = cpu.address_bus;
 
-        enqueue_terminal_input_character(c);
-        return true;
-    }
-    return false;
-}
+            // Clear command buffer when switching to stopped mode
+            command_buffer_length = 0;
+            command_buffer[0]     = '\0';
 
-/// <summary>
-/// Handle single character input
-/// </summary>
-/// <param name="data">Input character</param>
-/// <param name="application_message_size">Size of the message</param>
-/// <param name="cpu_mode">Current CPU operating mode</param>
-/// <returns>true if handled and should cleanup, false to continue processing</returns>
-static bool handle_single_character(char *data, size_t application_message_size, CPU_OPERATING_MODE cpu_mode)
-{
-    if (application_message_size == 1)
-    {
-        if (cpu_mode == CPU_RUNNING)
-        {
-            terminal_enqueue_input_command(data, 1);
+            publish_message("\r\nCPU MONITOR> ", 15);
+            return true;
         }
-        else
-        {
-            data[0] = (char)toupper(data[0]);
-            data[1] = 0x00;
-            process_virtual_input(data);
-        }
-        return true;
     }
+
     return false;
 }
 
@@ -415,16 +331,6 @@ void onopen(ws_cli_conn_t client)
 
     printf("New session\n");
     atomic_store(&current_client, (uintptr_t)client);
-
-    if (cleanup_required)
-    {
-        cleanup_session();
-    }
-
-#ifdef ALTAIR_CLOUD
-    cleanup_required = true;
-    dx_asyncSend(&async_expire_session, NULL);
-#endif
 
     // Log new session instead of device twin reporting
     printf("New WebSocket session established\n");
@@ -452,10 +358,6 @@ void onclose(ws_cli_conn_t client)
     printf("Session closed\n");
     atomic_store(&current_client, 0);
 
-    if (cleanup_required)
-    {
-        cleanup_session();
-    }
 }
 
 /// <summary>
@@ -472,16 +374,12 @@ void onclose(ws_cli_conn_t client)
 /// <param name="application_message_size">Size of the message</param>
 void terminal_handler(char *data, size_t application_message_size)
 {
-#define TERMINAL_COMMAND_BUFFER_SIZE 30
-    char command[TERMINAL_COMMAND_BUFFER_SIZE];
-    memset(command, 0x00, sizeof(command));
-
     if (data == NULL || application_message_size == 0 || application_message_size >= 1024)
     {
         return;
     }
 
-    // Handle control characters
+    // Handle control characters (including CTRL-M for mode toggle)
     if (handle_ctrl_character(data, application_message_size))
     {
         return;
@@ -489,40 +387,55 @@ void terminal_handler(char *data, size_t application_message_size)
 
     CPU_OPERATING_MODE cpu_mode = get_cpu_operating_mode_fast();
 
-    // Was just enter pressed
-    if (data[0] == '\r')
-    {
-        if (handle_enter_key(data, cpu_mode))
-        {
-            return;
-        }
-    }
-
-    // Handle single character input
-    if (handle_single_character(data, application_message_size, cpu_mode))
-    {
-        return;
-    }
-
-    // Prepare upper-case copy for virtual command processing when CPU is stopped
-    size_t copy_len = (sizeof(command) - 1 < application_message_size) ? sizeof(command) - 1 : application_message_size;
-    for (size_t i = 0; i < copy_len; i++)
-    {
-        command[i] = (char)toupper((unsigned char)data[i]);
-    }
-    command[copy_len] = '\0';
-
+    // Process based on CPU mode
     switch (cpu_mode)
     {
         case CPU_RUNNING:
-            if (application_message_size > 0)
+            // When CPU is running, queue all input directly
+            if (data[0] == '\r')
+            {
+                enqueue_terminal_input_character(0x0d);
+            }
+            else if (application_message_size > 0)
             {
                 terminal_enqueue_input_command(data, application_message_size);
             }
             break;
+
         case CPU_STOPPED:
-            process_virtual_input(command);
+            // When CPU is stopped, accumulate characters until return key is pressed
+            if (data[0] == '\r')
+            {
+                // Return key pressed - process the accumulated command
+                command_buffer[command_buffer_length] = '\0';
+
+                // Process the command if not empty
+                if (command_buffer_length > 0)
+                {
+                    process_virtual_input(command_buffer);
+                }
+                else
+                {
+                    // Empty command - just call with empty string
+                    process_virtual_input("");
+                }
+
+                // Reset the command buffer
+                command_buffer_length = 0;
+                command_buffer[0]     = '\0';
+            }
+            else
+            {
+                // Accumulate characters into the command buffer
+                for (size_t i = 0; i < application_message_size && command_buffer_length < COMMAND_BUFFER_SIZE - 1; i++)
+                {
+                    // Convert to uppercase and add to buffer
+                    command_buffer[command_buffer_length++] = (char)toupper((unsigned char)data[i]);
+                    publish_message(data, application_message_size);
+                }
+            }
             break;
+
         default:
             break;
     }
