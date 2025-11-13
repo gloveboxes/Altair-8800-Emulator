@@ -3,8 +3,6 @@
 #include "string.h"
 #include "dxisam.h"
 
-struct i_db g_cfg;
-
 /* Number of initial records inserted during the test */
 #define I_RNUM 1000
 

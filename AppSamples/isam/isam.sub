@@ -1,0 +1,43 @@
+era dxisam.*
+era doctor.*
+era isamtst.*
+era dxfile.*
+era dxindex.*
+
+gf -f isam/dxisam.c
+gf -f isam/dxisam.h
+gf -f isam/dxindex.c
+gf -f isam/dxfile.c
+
+gf -f isam/isamtst.c
+gf -f isam/doctor.c
+
+cc dxindex
+era dxindex.c
+
+cc dxfile
+era dxfile.c
+
+cc isamtst
+era isamtst.c
+
+cc dxisam 
+era dxisam.c
+
+cc doctor  
+era doctor.c
+                        
+clink doctor dxisam string dxfile dxindex
+era doctor.c
+era doctor.crl
+
+clink isamtst dxisam string dxindex dxfile
+era isamtst.c
+era isamtst.crl
+
+era dxisam.*
+era dxfile.*
+era dxindex.*
+
+;doctor
+;isamtst

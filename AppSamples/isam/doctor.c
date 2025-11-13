@@ -4,12 +4,16 @@
 
 #define RECORD_SIZE 81
 
-struct i_db g_cfg;
+/* Global index for PATIENTS table */
+struct i_idxent g_idx[I_MXIDX];
+int g_idxcnt;
+int g_idx_ready;
+int g_idx_dirty;
 
 #define P_IDLN 5
 #define P_NMLN 16
 #define P_ADLN 40
-#define P_CNT 600
+#define P_CNT 2000
 #define F_CNT 20
 #define L_CNT 20
 #define S_CNT 10
@@ -30,6 +34,16 @@ int do_updates();
 int do_deletes();
 int do_lookups();
 int lookup_patient();
+int delete_patient();
+int ensure_index();
+int rebuild_index();
+void copy_key_from_record();
+int idx_get_phys_at();
+void idx_set_phys_at();
+void idx_copy_entry();
+int idx_remove_entry();
+void idx_append_sample();
+void idx_update_after_delete();
 int get_pid();
 int make_patient();
 int print_patients();
@@ -455,6 +469,184 @@ int readback()
     return 0;
 }
 
+void copy_key_from_record(dest, rec)
+char *dest;
+char *rec;
+{
+    int i;
+    int ksz;
+    int koff;
+
+    ksz = g_cfg.tbls[0].keysz[0];
+    if (ksz > I_MXKEYLN)
+        ksz = I_MXKEYLN;
+    koff = g_cfg.tbls[0].keyoff[0];
+
+    for (i = 0; i < I_MXKEYLN; i++)
+    {
+        if (i < ksz)
+            dest[i] = rec[koff + i];
+        else
+            dest[i] = 0;
+    }
+}
+
+/* Helpers that read/write the physical slot without relying on -> syntax */
+int idx_get_phys_at(idx)
+int idx;
+{
+    int lo, hi;
+    char *p;
+
+    p = &g_idx[idx];
+    p = p + I_MXKEYLN;
+    lo = p[0] & 0xFF;
+    hi = p[1] & 0xFF;
+    return (hi << 8) | lo;
+}
+
+void idx_set_phys_at(idx, value)
+int idx;
+int value;
+{
+    char *p;
+
+    p = &g_idx[idx];
+    p = p + I_MXKEYLN;
+    p[0] = value & 0xFF;
+    p[1] = (value >> 8) & 0xFF;
+}
+
+void idx_copy_entry(dst, src)
+int dst;
+int src;
+{
+    int i;
+
+    idx_set_phys_at(dst, idx_get_phys_at(src));
+    for (i = 0; i < I_MXKEYLN; i++)
+        g_idx[dst].key[i] = g_idx[src].key[i];
+}
+
+int idx_remove_entry(phys)
+int phys;
+{
+    int i;
+    int j;
+
+    for (i = 0; i < g_idxcnt; i++)
+    {
+        if (idx_get_phys_at(i) == phys)
+        {
+            for (j = i; j < g_idxcnt - 1; j++)
+                idx_copy_entry(j, j + 1);
+            g_idxcnt--;
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+void idx_append_sample()
+{
+    int slot;
+    int start;
+    int rc;
+    char rec[RECORD_SIZE];
+
+    if (g_idxcnt >= I_MXIDX)
+        return;
+
+    if (g_idxcnt == 0)
+        start = 0;
+    else
+    {
+        start = idx_get_phys_at(g_idxcnt - 1) + I_IDXSAMP;
+        if (start <= idx_get_phys_at(g_idxcnt - 1))
+            start = idx_get_phys_at(g_idxcnt - 1) + 1;
+    }
+
+    if (start < 0)
+        start = 0;
+
+    for (slot = start; slot < g_cfg.tbls[0].maxrec; slot++)
+    {
+        rc = i_rdphys("PATIENTS", rec, slot);
+        if (rc != I_OK)
+            continue;
+
+        if (g_idxcnt > 0 && slot <= idx_get_phys_at(g_idxcnt - 1))
+            continue;
+
+        idx_set_phys_at(g_idxcnt, slot);
+        copy_key_from_record(g_idx[g_idxcnt].key, rec);
+        g_idxcnt++;
+        break;
+    }
+}
+
+void idx_update_after_delete(phys)
+int phys;
+{
+    int i;
+    int slot;
+    int limit;
+    int rc;
+    char rec[RECORD_SIZE];
+
+    for (i = 0; i < g_idxcnt; i++)
+    {
+        if (idx_get_phys_at(i) == phys)
+        {
+            if (i + 1 < g_idxcnt)
+                limit = idx_get_phys_at(i + 1);
+            else
+                limit = g_cfg.tbls[0].maxrec;
+
+            for (slot = phys + 1; slot < limit; slot++)
+            {
+                rc = i_rdphys("PATIENTS", rec, slot);
+                if (rc != I_OK)
+                    continue;
+
+                idx_set_phys_at(i, slot);
+                copy_key_from_record(g_idx[i].key, rec);
+                return;
+            }
+
+            if (idx_remove_entry(phys))
+                idx_append_sample();
+            return;
+        }
+    }
+}
+
+int rebuild_index()
+{
+    int rc;
+
+    puts("Refreshing sparse index...");
+    rc = i_idxbld("PATIENTS", g_idx, I_MXIDX);
+    if (rc < 0)
+        return rc;
+
+    g_idxcnt = rc;
+    g_idx_ready = 1;
+    g_idx_dirty = 0;
+
+    printf("Index built: %d entries (sampling every %d records)\r\n",
+        g_idxcnt, I_IDXSAMP);
+    return I_OK;
+}
+
+int ensure_index()
+{
+    if (!g_idx_ready || g_idx_dirty)
+        return rebuild_index();
+    return I_OK;
+}
+
 int get_pid(rec)
 char *rec;
 {
@@ -477,60 +669,142 @@ char *rec;
 int lookup_patient(pid)
 int pid;
 {
-    int i;
     int rc;
     int rid;
     int age;
     int ageoff;
-    int max_phys;
+    int phys;
     char rec[RECORD_SIZE];
+    char keybuf[P_IDLN + 1];
     char fnamebuf[P_NMLN + 1];
     char lnamebuf[P_NMLN + 1];
     char addrbuf[P_ADLN + 1];
     char gender;
 
-    /* Scan physical records directly using i_rdphys */
-    max_phys = g_cfg.tbls[0].maxrec;
-    for (i = 0; i < max_phys; i++)
+    rc = ensure_index();
+    if (rc != I_OK)
+        return rc;
+
+    /* Build key from pid */
+    setpid(keybuf, pid);
+    keybuf[P_IDLN] = 0;
+
+    /* Use indexed lookup */
+    phys = i_idxlookup("PATIENTS", keybuf, g_idx, g_idxcnt, rec);
+    if (phys < 0)
     {
-        rc = i_rdphys("PATIENTS", rec, i);
-        if (rc != I_OK)
-            continue;  /* Skip deleted records */
-
-        rid = get_pid(rec);
-        if (rid == pid)
-        {
-            strncpy(fnamebuf, &rec[P_IDLN], P_NMLN);
-            fnamebuf[P_NMLN] = 0;
-            strncpy(lnamebuf, &rec[P_IDLN + P_NMLN], P_NMLN);
-            lnamebuf[P_NMLN] = 0;
-            strncpy(addrbuf, &rec[P_IDLN + (P_NMLN * 2)], P_ADLN);
-            addrbuf[P_ADLN] = 0;
-
-            ageoff = P_IDLN + (P_NMLN * 2) + P_ADLN;
-            age = (rec[ageoff] - '0') * 100;
-            age = age + ((rec[ageoff + 1] - '0') * 10);
-            age = age + (rec[ageoff + 2] - '0');
-            gender = rec[ageoff + 3];
-
-            printf("Lookup %d -> %-15s %-15s %-30s Age:%3d Gender:%c\r\n",
-                pid,
-                fnamebuf,
-                lnamebuf,
-                addrbuf,
-                age,
-                gender);
-            return I_OK;
-        }
+        printf("Lookup %d -> not found\r\n", pid);
+        return I_ENREC;
     }
 
-    printf("Lookup %d -> not found\r\n", pid);
-    return I_ENREC;
+    /* Parse and display record */
+    rid = get_pid(rec);
+    strncpy(fnamebuf, &rec[P_IDLN], P_NMLN);
+    fnamebuf[P_NMLN] = 0;
+    strncpy(lnamebuf, &rec[P_IDLN + P_NMLN], P_NMLN);
+    lnamebuf[P_NMLN] = 0;
+    strncpy(addrbuf, &rec[P_IDLN + (P_NMLN * 2)], P_ADLN);
+    addrbuf[P_ADLN] = 0;
+
+    ageoff = P_IDLN + (P_NMLN * 2) + P_ADLN;
+    age = (rec[ageoff] - '0') * 100;
+    age = age + ((rec[ageoff + 1] - '0') * 10);
+    age = age + (rec[ageoff + 2] - '0');
+    gender = rec[ageoff + 3];
+
+    printf("Lookup %d -> %-15s %-15s %-30s Age:%3d Gender:%c\r\n",
+        pid,
+        fnamebuf,
+        lnamebuf,
+        addrbuf,
+        age,
+        gender);
+    return I_OK;
 }
 
 int do_lookups()
 {
     int rc;
+    int i;
+    int j;
+    int pid;
+    int limit;
+    int extra;
+    int total;
+
+    total = g_cfg.tbls[0].nrecs;
+    if (total < 0)
+        total = 0;
+
+    rc = ensure_index();
+    if (rc != I_OK)
+        return rc;
+
+    if (g_idxcnt > 0)
+    {
+        /* Walk several sample keys plus nearby records to exercise index ranges */
+        limit = g_idxcnt;
+        if (limit > 10)
+            limit = 10;
+        for (i = 0; i < limit; i++)
+        {
+            pid = 0;
+            for (j = 0; j < P_IDLN; j++)
+                pid = (pid * 10) + (g_idx[i].key[j] - '0');
+
+            rc = lookup_patient(pid);
+            if (rc != I_OK && rc != I_ENREC)
+                return rc;
+
+            extra = pid - 1;
+            if (extra > 0)
+            {
+                rc = lookup_patient(extra);
+                if (rc != I_OK && rc != I_ENREC)
+                    return rc;
+            }
+
+            if (I_IDXSAMP > 1)
+            {
+                extra = pid + (I_IDXSAMP / 2);
+                if (extra > pid && extra <= total)
+                {
+                    rc = lookup_patient(extra);
+                    if (rc != I_OK && rc != I_ENREC)
+                        return rc;
+                }
+            }
+        }
+
+        /* Probe the tail of the index explicitly */
+        pid = 0;
+        for (j = 0; j < P_IDLN; j++)
+            pid = (pid * 10) + (g_idx[g_idxcnt - 1].key[j] - '0');
+
+        rc = lookup_patient(pid);
+        if (rc != I_OK && rc != I_ENREC)
+            return rc;
+
+        extra = pid + 1;
+        if (extra <= total)
+        {
+            rc = lookup_patient(extra);
+            if (rc != I_OK && rc != I_ENREC)
+                return rc;
+        }
+
+        if (I_IDXSAMP > 1)
+        {
+            extra = pid + (I_IDXSAMP - 1);
+            if (extra <= total)
+            {
+                rc = lookup_patient(extra);
+                if (rc != I_OK && rc != I_ENREC)
+                    return rc;
+            }
+        }
+        return I_OK;
+    }
 
     rc = lookup_patient(1);
     if (rc != I_OK && rc != I_ENREC)
@@ -548,6 +822,10 @@ int do_lookups()
     if (rc != I_OK && rc != I_ENREC)
         return rc;
 
+    rc = lookup_patient(128);
+    if (rc != I_OK && rc != I_ENREC)
+        return rc;
+
     return I_OK;
 }
 
@@ -561,27 +839,81 @@ int age;
 char gender;
 {
     char rec[RECORD_SIZE];
+    char keybuf[P_IDLN + 1];
+    char currec[RECORD_SIZE];
+    int ageoff;
     int rc;
-    int i;
+    int phys;
 
-    if (pid <= 0 || pid > g_cfg.tbls[0].nrecs)
+    if (pid <= 0)
         return I_ENREC;
 
-    for (i = 0; i < RECORD_SIZE; i++)
-        rec[i] = 0;
+    rc = ensure_index();
+    if (rc != I_OK)
+        return rc;
 
+    memset(rec, 0, RECORD_SIZE);
+    setpid(keybuf, pid);
+    keybuf[P_IDLN] = 0;
     setpid(rec, pid);
     copy_field(&rec[P_IDLN], fname, P_NMLN);
     copy_field(&rec[P_IDLN + P_NMLN], lname, P_NMLN);
     setadr(&rec[P_IDLN + (P_NMLN * 2)], housenum, streetname, P_ADLN);
-    setnum(&rec[P_IDLN + (P_NMLN * 2) + P_ADLN], age);
-    rec[P_IDLN + (P_NMLN * 2) + P_ADLN + 3] = gender;
 
-    rc = i_uprec("PATIENTS", rec, RECORD_SIZE, pid - 1);
+    ageoff = P_IDLN + (P_NMLN * 2) + P_ADLN;
+    setnum(&rec[ageoff], age);
+    rec[ageoff + 3] = gender;
+
+    phys = i_idxlookup("PATIENTS", keybuf, g_idx, g_idxcnt, currec);
+    if (phys >= 0)
+        rc = i_wrphys("PATIENTS", rec, RECORD_SIZE, phys);
+    else if (phys == I_ENREC)
+        rc = i_uprec("PATIENTS", rec, RECORD_SIZE, pid - 1);
+    else
+        rc = phys;
+
+    if (rc != I_OK)
+        printf("Update pid %d failed rc=%d\r\n", pid, rc);
+
+    return rc;
+}
+
+int delete_patient(pid)
+int pid;
+{
+    int phys;
+    int rc;
+    char keybuf[P_IDLN + 1];
+    char rec[RECORD_SIZE];
+
+    if (pid <= 0)
+        return I_ENREC;
+
+    rc = ensure_index();
     if (rc != I_OK)
         return rc;
 
-    return I_OK;
+    setpid(keybuf, pid);
+    keybuf[P_IDLN] = 0;
+
+    phys = i_idxlookup("PATIENTS", keybuf, g_idx, g_idxcnt, rec);
+    if (phys >= 0)
+    {
+        rc = i_delphys("PATIENTS", phys);
+        if (rc == I_OK)
+        {
+            /* Remove from index and update */
+            i_idxdel("PATIENTS", phys, g_idx, &g_idxcnt);
+            idx_update_after_delete(phys);
+        }
+    }
+    else
+        rc = phys;
+
+    if (rc != I_OK && rc != I_ENREC)
+        printf("Delete pid %d failed rc=%d\r\n", pid, rc);
+
+    return rc;
 }
 
 int do_updates()
@@ -620,10 +952,17 @@ int do_updates()
 int do_deletes()
 {
     int rc;
-    int i;
     int total;
     int count;
-    int idx;
+    int deleted;
+    int cursor;
+    int step;
+    int attempts;
+    int maxattempts;
+    int pid;
+    int a;
+    int b;
+    int t;
 
     total = g_cfg.tbls[0].nrecs;
     if (total <= 0)
@@ -633,23 +972,67 @@ int do_deletes()
     if (count <= 0)
         count = 1;
 
+    rc = ensure_index();
+    if (rc != I_OK)
+        return rc;
+
     printf("Deleting %d records (10%% of %d)...\r\n", count, total);
 
-    for (i = 0; i < count; i++)
+    step = 3;
+    if (total > 1)
     {
-        if (g_cfg.tbls[0].nrecs <= 0)
-            break;
-
-        idx = (i * 3) % g_cfg.tbls[0].nrecs;
-        rc = i_delrec("PATIENTS", idx);
-        if (rc != I_OK)
+        while (step < total)
         {
-            printf("Delete failed at iteration %d (idx=%d) rc=%d\r\n", i, idx, rc);
-            return rc;
+            a = total;
+            b = step;
+            t = 0;
+            while (b != 0)
+            {
+                t = a % b;
+                a = b;
+                b = t;
+            }
+            if (a == 1)
+                break;
+            step++;
         }
+        if (step >= total)
+            step = 1;
     }
 
-    printf("Delete complete: %d records deleted\r\n", count);
+    cursor = 0;
+    deleted = 0;
+    attempts = 0;
+    maxattempts = total * 2;
+    if (maxattempts < count * 2)
+        maxattempts = count * 2;
+
+    while (deleted < count && attempts < maxattempts)
+    {
+        pid = cursor + 1;
+        cursor = (cursor + step) % total;
+        attempts++;
+
+        rc = delete_patient(pid);
+        if (rc == I_OK)
+        {
+            deleted++;
+            continue;
+        }
+        if (rc == I_ENREC)
+            continue;
+
+        printf("Delete failed at pid %d rc=%d\r\n", pid, rc);
+        return rc;
+    }
+
+    if (deleted < count)
+    {
+        printf("Delete incomplete: removed %d of %d requested\r\n", deleted, count);
+        return I_ENREC;
+    }
+
+    printf("Delete complete: %d records deleted\r\n", deleted);
     return I_OK;
 }
 
@@ -661,6 +1044,9 @@ main()
     struct patient pat;
 
     namrdy = 0;
+    g_idx_ready = 0;
+    g_idx_dirty = 1;
+    g_idxcnt = 0;
 
     puts("\r\nInitializing database...");
     initcfg();
@@ -685,9 +1071,14 @@ main()
         puts("Create table failed");
         return 1;
     }
-    puts("Table created successfully");
+    puts("Table created successfully\n");
 
-    puts("Inserting records...");
+    /* Initialize index before inserts */
+    g_idxcnt = 0;
+    g_idx_ready = 1;
+    g_idx_dirty = 0;
+
+    puts("Inserting records...\n");
     for (i = 0; i < P_CNT; i++)
     {
         make_patient(i + 1, &pat);
@@ -698,10 +1089,24 @@ main()
             printf("Insert failed at record %d rc=%d\r\n", i + 1, rc);
             return 1;
         }
+        
+        /* Update index every N records (sampling boundary) */
+        if ((i + 1) % I_IDXSAMP == 0 || i == 0)
+        {
+            rc = i_idxins("PATIENTS", g_cfg.tbls[0].maxrec - 1, rec, 
+                         g_idx, &g_idxcnt, I_MXIDX);
+            if (rc != I_OK && rc != I_ESIZE)
+            {
+                printf("Index insert failed at record %d rc=%d\r\n", i + 1, rc);
+            }
+        }
+        
         if ((i + 1) % 100 == 0)
-            printf("  Inserted %d records...\r\n", i + 1);
+            printf("  Inserted %d records (index: %d entries)...\r\n", 
+                   i + 1, g_idxcnt);
     }
-    printf("Insert complete: %d records inserted\r\n", P_CNT);
+    printf("Insert complete: %d records inserted, %d index entries\r\n", 
+           P_CNT, g_idxcnt);
 
     puts("Updating config with final counts...");
     rc = i_cfwr("PATIENTS.CFG");
@@ -734,6 +1139,8 @@ main()
         puts("Config write after maintenance failed");
         return 1;
     }
+
+    printf("Index status: %d entries\r\n", g_idxcnt);
 
     puts("Running sample patient lookups...");
     rc = do_lookups();
