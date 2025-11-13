@@ -61,10 +61,6 @@ static void (*_client_connected_cb)(void);
 // Session management
 static const int session_minutes = 1 * 60 * 30; // 30 minutes
 
-#ifdef ALTAIR_CLOUD
-static struct timeval ws_timeout = {0, 250 * 1000};
-#endif
-
 // =============================================================================
 // Forward Declarations
 // =============================================================================
@@ -218,7 +214,8 @@ char dequeue_terminal_input_character(void)
 
     if (terminal_input_queue.count > 0)
     {
-        c                         = terminal_input_queue.buffer[terminal_input_queue.head];
+        c = terminal_input_queue.buffer[terminal_input_queue.head];
+
         terminal_input_queue.head = (terminal_input_queue.head + 1) % capacity;
         terminal_input_queue.count--;
 
@@ -357,7 +354,6 @@ void onclose(ws_cli_conn_t client)
 
     printf("Session closed\n");
     atomic_store(&current_client, 0);
-
 }
 
 /// <summary>
