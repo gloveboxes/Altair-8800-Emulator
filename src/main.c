@@ -39,10 +39,9 @@ enum PANEL_MODE_T panel_mode         = PANEL_BUS_MODE;
 char msgBuffer[MSG_BUFFER_BYTES]     = {0};
 const char *network_interface        = NULL;
 
-static bool stop_cpu = false;
 static char Log_Debug_Time_buffer[128];
 
-DX_TIMER_BINDING tmr_ws_ping_pong = {.repeat = &(struct timespec){10, 0}, .name = "tmr_partial_message", .handler = ws_ping_pong_handler};
+DX_TIMER_BINDING tmr_ws_ping_pong = {.repeat = &(struct timespec){10, 0}, .name = "tmr_ws_ping_pong", .handler = ws_ping_pong_handler};
 
 DX_TIMER_BINDING tmr_heart_beat          = {.repeat = &(struct timespec){30, 0}, .name = "tmr_heart_beat", .handler = heart_beat_handler};
 DX_TIMER_BINDING tmr_report_memory_usage = {.repeat = &(struct timespec){20, 0}, .name = "tmr_report_memory_usage", .handler = report_memory_usage};
@@ -479,11 +478,16 @@ static void *altair_thread(void *arg)
     }
 
     dx_Log_Debug("Altair thread: Entering main CPU loop\n");
-    while (!stop_cpu)
+    while (true)
     {
         if (get_cpu_operating_mode_fast() == CPU_RUNNING)
         {
             i8080_cycle(&cpu);
+        }
+        else
+        {
+            // Sleep briefly when CPU is stopped to avoid busy-waiting
+            nanosleep(&(struct timespec){0, 100 * ONE_MS}, NULL);
         }
     }
 

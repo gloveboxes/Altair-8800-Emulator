@@ -6,11 +6,11 @@
 static DX_DECLARE_TIMER_HANDLER(weather_cache_expired);
 
 static const char *weatherURLTemplate =
-	"http://api.openweathermap.org/data/2.5/weather?lat=%.6f&lon=%.6f&appid=%s&units=metric";
+	"https://api.openweathermap.org/data/2.5/weather?lat=%.6f&lon=%.6f&appid=%s&units=metric";
 static char weatherUrl[200];
 
 static const char *pollutionURLTemplate =
-	"http://api.openweathermap.org/data/2.5/air_pollution?lat=%.6f&lon=%.6f&appid=%s";
+	"https://api.openweathermap.org/data/2.5/air_pollution?lat=%.6f&lon=%.6f&appid=%s";
 static char pollutionUrl[200];
 
 static bool owm_initialized = false;
