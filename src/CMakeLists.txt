@@ -194,3 +194,12 @@ set_source_files_properties(FrontPanels/front_panel_virtual.c PROPERTIES COMPILE
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
+
+# Add custom clean-build target that removes build artifacts before building
+add_custom_target(clean-build
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target clean
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config ${CMAKE_BUILD_TYPE} --target all -j 8
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Cleaning and rebuilding project..."
+    USES_TERMINAL
+)
