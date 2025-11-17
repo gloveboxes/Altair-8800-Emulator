@@ -28,14 +28,15 @@ nav:
     - Start the Emulator: "40-deploy-with-docker/17-start-container.md"
   - Build from source:
     - Introduction: "45-build-from-source/01-Introduction.md"
-    - Install Prerequisites:
-      - Linux: "45-build-from-source/Install prerequisites/01-Linux-users.md"
-      - macOS: "45-build-from-source/Install prerequisites/02-macOS-users.md"
-      - Windows: "45-build-from-source/Install prerequisites/03-Windows-users.md"
-      - Raspberry Pi OS: "45-build-from-source/Install prerequisites/04-Raspberry-Pi-users.md"
-    - Clone the Altair repo: "45-build-from-source/02-Clone-Altair-repo.md"
+
     - Build from Visual Studio Code: "45-build-from-source/03-Build-from-vs-code.md"
-    - Build from the Command Line: "45-build-from-source/04-Compile-from-CLI.md"
+    - Build from Command Line:
+      - Install Prerequisites:
+        - Linux: "45-build-from-source/Install prerequisites/01-Linux-users.md"
+        - macOS: "45-build-from-source/Install prerequisites/02-macOS-users.md"
+        - Windows: "45-build-from-source/Install prerequisites/03-Windows-users.md"
+        - Raspberry Pi OS: "45-build-from-source/Install prerequisites/04-Raspberry-Pi-users.md"
+      - Build Source: "45-build-from-source/04-Compile-from-CLI.md"
     - Start the Emulator: "45-build-from-source/05-Run-the-emulator.md"
   - Program the Altair:
     - Introduction: "60-programming/00-Introduction.md"
@@ -82,14 +83,6 @@ plugins:
           name: English
           default: true
           site_name: Altair 8800 Emulator
-          admonition_translations:
-            tip: tip
-            warning: Warning
-            info: Information
-            note: Note
-            danger: Danger
-            success: Success
-            question: Question
 
 
 theme:

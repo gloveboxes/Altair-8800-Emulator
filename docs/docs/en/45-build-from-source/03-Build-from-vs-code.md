@@ -1,24 +1,44 @@
-## Install Visual Studio Code
+## Install Prerequisites
 
-1. Install [Visual Studio Code](https://code.visualstudio.com&azure-portal=true).
+1. Install
+   - [Visual Studio Code](https://code.visualstudio.com&azure-portal=true).
+   - Install Docker.
+   - Windows: Install WSL and latest version of Ubuntu.
 
-2. Open a Terminal command prompt.
-    If you are using Windows Subsystem for Linux then open a WSL command prompt.
-3. Go to the **Altair-8800-Emulator/src** folder
-4. Run the following command to open the folder with VS Code.
+## Clone the Solution Repo
+
+=== "Windows"
+
+    1. Open WSL/Ubuntu terminal window.
+    2. Clone the repo
+
+        ```bash
+        git clone --recurse-submodules https://github.com/gloveboxes/Altair-8800-Emulator
+        ```
+
+=== "Linux and macOS"
+
+    1. Open a terminal window
+    1. Clone the repo
+
+        ```bash
+        git clone --recurse-submodules https://github.com/gloveboxes/Altair-8800-Emulator
+        ```
+
+
+## Open the Solution
+
+1. From command line, navigate to the **Altair-8800-Emulator** folder
+2. Run the following command to open the folder with VS Code.
 
     ```bash
     code .
     ```
 
-5. Install the following Visual Studio Code extensions:
-    - If using WSL, then install the [Visual Studio Code Remote-WSL extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl&azure-portal=true).
-    - [Visual Studio Code CodeLLDB extension](https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb)
-    - [CMake Tools extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools)
-    - [C/C++ extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)
+3. Reopen in Container
+    - This will build an Ubuntu 25.04 (trixie) environment and install all the dev tools.
 
-6. Open the .vscode/launch.json file in VS Code.
-7. Optionally update the [args] json property for the build configuration. Available options are:
+4. Optionally update the [args] json property in the **.vscode/launch.json** file for the build configuration. Available options are:
     - `--MqttHost <host>`: MQTT broker hostname (required for MQTT)
     - `--MqttPort <port>`: MQTT broker port (default: 1883)
     - `--MqttClientId <client_id>`: MQTT client ID (default: AltairEmulator_<timestamp>)
@@ -43,6 +63,5 @@
     ]
     ```
 
-8. Save the launch.json file.
-9. Select the **GCC** or **Clang** Kit.
-10. Press <kbd>F5</kbd> to compile and launch the Altair emulator.
+5. Save the launch.json file.
+6. Press <kbd>F5</kbd> to compile and launch the Altair emulator.

@@ -1,8 +1,0 @@
-{
-  "label": "Run on Azure Sphere",
-  "position": 10,
-  "link": {
-    "type": "generated-index",
-    "description": "Learn about running the Altair emulator on Azure Sphere."
-  }
-}

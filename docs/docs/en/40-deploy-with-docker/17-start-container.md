@@ -118,7 +118,7 @@ Enable I2C hardware access and pass the `--device` option to the `docker run` co
 2. Pass the `--device` option to the `docker run` command:
 
     ```shell
-    docker run -d --device=/dev/i2c-1 --env-file altair.env --user root -p 8082:8082 -p 8088:8080 --name altair8800 --rm glovebox/altair8800:latest
+    docker run -d --env-file ~/altair.env --privileged --device=/dev/i2c-1 --user root -p 8082:8082 -p 8088:8080 --name altair8800 --restart always glovebox/altair8800:latest
     ```
 
 ## Altair Disk Storage
@@ -126,7 +126,7 @@ Enable I2C hardware access and pass the `--device` option to the `docker run` co
 Altair emulator disks can be stored in a Docker persistent storage volume. This ensures any changes made to the contents of the Altair disks are saved if the Docker container is stopped or deleted.
 
 ```shell
-docker run -d -v altair-disks:/app/Disks --user root -p 8082:8082 -p 8088:8080 --name altair8800 --rm glovebox/altair8800:latest
+docker run -d --env-file ~/altair.env --privileged --device=/dev/i2c-1 -v altair-disks:/app/Disks --user root -p 8082:8082 -p 8088:8080 --name altair8800 --restart always glovebox/altair8800:latest
 ```
 
 Or, pass environment variables using the environment file:

@@ -1,3 +1,9 @@
 .DS_Store
 
 build/
+__pycache__
+*.py[co]
+[.][v]env/
+.DS_Store
+.ruff_cache
+.env

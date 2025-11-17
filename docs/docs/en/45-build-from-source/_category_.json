@@ -1,8 +1,0 @@
-{
-  "label": "Build from source",
-  "position": 10,
-  "link": {
-    "type": "generated-index",
-    "description": "Learn about cloud services for the Altair emulator."
-  }
-}
