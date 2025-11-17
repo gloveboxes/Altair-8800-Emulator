@@ -118,7 +118,7 @@ Enable I2C hardware access and pass the `--device` option to the `docker run` co
 2. Pass the `--device` option to the `docker run` command:
 
     ```shell
-    docker run -d --device=/dev/i2c-1 --env-file altair.env --user root -p 8082:8082 -p 8088:8080 --name altair8800 --rm glovebox/altair8800-pisense:latest
+    docker run -d --device=/dev/i2c-1 --env-file altair.env --user root -p 8082:8082 -p 8088:8080 --name altair8800 --rm glovebox/altair8800:latest
     ```
 
 ## Altair Disk Storage
