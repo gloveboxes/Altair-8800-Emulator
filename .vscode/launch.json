@@ -160,7 +160,7 @@
             "name": "Terminal Web Server",
             "type": "node-terminal",
             "request": "launch",
-            "command": "python3 -m http.server 8080",
+            "command": "python3 -m http.server 8088",
             "cwd": "${workspaceFolder}/Terminal"
         },
         {

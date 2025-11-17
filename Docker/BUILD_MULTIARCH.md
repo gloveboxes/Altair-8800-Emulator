@@ -93,10 +93,10 @@ Once built and pushed, you can run the image on any supported architecture:
 
 ```bash
 # Basic run
-docker run -p 8080:8080 -p 8082:8082 YOUR_DOCKER_ID/altair8800:latest
+docker run -p 8088:8080 -p 8082:8082 YOUR_DOCKER_ID/altair8800:latest
 
 # With environment variables
-docker run -p 8080:8080 -p 8082:8082 \
+docker run -p 8088:8080 -p 8082:8082 \
   -e MQTT_HOST=your-mqtt-broker \
   -e OPEN_WEATHER_MAP_API_KEY=your-api-key \
   YOUR_DOCKER_ID/altair8800:latest

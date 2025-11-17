@@ -10,7 +10,7 @@ Below you'll find instructions for standard and advanced deployment modes, envir
 This option is recommended for most users and works on 64-bit versions of Linux, macOS, Windows, and Raspberry Pi.
 
 ```shell
-docker run -d --user root -p 8082:8082 -p 8080:8080 --name altair8800 --rm glovebox/altair8800:latest
+docker run -d --user root -p 8082:8082 -p 8088:8080 --name altair8800 --rm glovebox/altair8800:latest
 ```
 
 Note: Port 80 provides access to the Web Terminal interface, while port 8082 enables Altair emulator terminal I/O through a WebSocket connection.
@@ -44,7 +44,7 @@ Open the `altair.env` file in a text editor and set the environment variables yo
 | FRONT_PANEL | Front panel type (sensehat, kit, none; default: none) |
 
 ```shell
-docker run -d --env-file altair.env --user root -p 8082:8082 -p 8080:8080 --name altair8800 --rm glovebox/altair8800:latest
+docker run -d --env-file altair.env --user root -p 8082:8082 -p 8088:8080 --name altair8800 --rm glovebox/altair8800:latest
 ```
 
 ### Time Zone
@@ -104,7 +104,7 @@ Enable I2C hardware access and pass the `--device` option to the `docker run` co
 2. Pass the `--device` option to the `docker run` command:
 
     ```shell
-    docker run -d --device=/dev/i2c-1 --env-file altair.env --user root -p 8082:8082 -p 8080:8080 --name altair8800 --rm glovebox/altair8800-pisense:latest
+    docker run -d --device=/dev/i2c-1 --env-file altair.env --user root -p 8082:8082 -p 8088:8080 --name altair8800 --rm glovebox/altair8800-pisense:latest
     ```
 
 ## Altair Disk Storage
@@ -112,13 +112,13 @@ Enable I2C hardware access and pass the `--device` option to the `docker run` co
 Altair emulator disks can be stored in a Docker persistent storage volume. This ensures any changes made to the contents of the Altair disks are saved if the Docker container is stopped or deleted.
 
 ```shell
-docker run -d -v altair-disks:/app/Disks --user root -p 8082:8082 -p 8080:8080 --name altair8800 --rm glovebox/altair8800:latest
+docker run -d -v altair-disks:/app/Disks --user root -p 8082:8082 -p 8088:8080 --name altair8800 --rm glovebox/altair8800:latest
 ```
 
 Or, pass environment variables using the environment file:
 
 ```shell
-docker run -d -v altair-disks:/app/Disks --env-file altair.env --user root -p 8082:8082 -p 8080:8080 --name altair8800 --rm glovebox/altair8800:latest
+docker run -d -v altair-disks:/app/Disks --env-file altair.env --user root -p 8082:8082 -p 8088:8080 --name altair8800 --rm glovebox/altair8800:latest
 ```
 
 ## Open the Web Terminal
