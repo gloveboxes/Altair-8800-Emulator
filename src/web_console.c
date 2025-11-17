@@ -300,10 +300,9 @@ static bool handle_ctrl_character(char *data, size_t application_message_size)
             // Clear command buffer when switching to stopped mode
             command_buffer_length = 0;
             command_buffer[0]     = '\0';
-
             publish_message("\r\nCPU MONITOR> ", 15);
-            return true;
         }
+        return true;
     }
 
     return false;
