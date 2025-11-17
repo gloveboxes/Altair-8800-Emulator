@@ -142,8 +142,8 @@ To access the Altair emulator, open the Web Terminal:
 
 1. Familiarize yourself with the [Web Terminal](../20-fundamentals/25-Web-Terminal.md) and the CP/M operating system.
 2. Open your web browser:
-    - If running locally, go to `http://localhost:8082`.
-    - If running remotely, go to `http://<hostname_or_ip_address>:8082`.
+    - If running locally, go to `http://localhost:8088`.
+    - If running remotely, go to `http://<hostname_or_ip_address>:8088`.
 
     ![The following image is of the web terminal command prompt](../20-fundamentals/img/web_terminal_intro.png)
 
@@ -175,7 +175,7 @@ docker start altair8800
 
 Removes the Altair emulator container after stopping it:
 ```bash
-docker container rm altair8800
+docker rm altair8800
 ```
 
 ### Manage Persistent Storage Volume

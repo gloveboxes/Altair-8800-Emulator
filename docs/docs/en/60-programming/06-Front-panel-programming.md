@@ -232,4 +232,4 @@ Disassemble: Address bus: 0000000100000010 (0x0102), Data bus 00000001 (0x01)
 Disassemble: Address bus: 0000000100000011 (0x0103), Data bus 11000011 (0xc3), JMP adr          (3 byte instruction)
 Disassemble: Address bus: 0000000100000100 (0x0104), Data bus 00000000 (0x00)
 Disassemble: Address bus: 0000000100000101 (0x0105), Data bus 00000001 (0x01)
-``
+```

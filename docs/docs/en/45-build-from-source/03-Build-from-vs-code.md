@@ -28,6 +28,9 @@
     - `--FrontPanel <mode>`: Front panel selection: sensehat, kit, none (default: none)
     - `--OpenWeatherMapKey <key>`: OpenWeatherMap API key
     - `--OpenAIKey <key>`: OpenAI API key
+    - `--OpenAIEndpoint <url>`: OpenAIEnpoint
+        - The default endpoint is **https://api.openai.com/v1/chat/completions**.
+        - For LM Studio, use **http://IP_ADDRESS:1234/v1/chat/completions**. If Altair runs in a container, use the LM Studio server's IP address—not localhost—since localhost refers to the container itself.
 
     **Example: Connecting to a ThingsBoard MQTT broker**
 
