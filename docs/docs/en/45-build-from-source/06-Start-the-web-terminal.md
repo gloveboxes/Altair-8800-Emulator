@@ -17,12 +17,12 @@ The following instructions are for running the Altair emulator on your local com
 3. Start the Python web server.
 
     ```bash
-    python3 -m http.server 80
+    python3 -m http.server 8088
     ```
 4. Open a web browser and navigate to the following URL. This assumes the Altair emulator is running on the same computer as the web browser.
 
     ```bash
-    http://localhost
+    http://localhost:8088
     ```
 
 
