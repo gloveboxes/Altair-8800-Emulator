@@ -4,7 +4,7 @@ The following text is an exert from the [Assembly language](https://en.wikipedia
 
 ## Intel 8080 Assembly Language Programming Manual
 
-Refer to the [Intel 8080 Assembly Language Programming Manual](00-Manuals.md#8080--assembly-language-development) for more about the language and its implementation.
+Refer to the [Intel 8080 Assembly Language Programming Manual](00-Manuals.md#8080-assembly-language-development) for more about the language and its implementation.
 
 !!! warning "Intel 8080 Assembly Language Symbol Length Limitation"
 

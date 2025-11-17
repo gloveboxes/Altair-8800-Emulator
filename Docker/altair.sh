@@ -54,6 +54,10 @@ if [ ! -z "$OPENAI_API_KEY" ]; then
     ARGS="$ARGS -a $OPENAI_API_KEY"
 fi
 
+if [ ! -z "$OPENAI_ENDPOINT" ]; then
+    ARGS="$ARGS -e $OPENAI_ENDPOINT"
+fi
+
 # Cleanup function
 cleanup() {
     echo "Shutting down services..."

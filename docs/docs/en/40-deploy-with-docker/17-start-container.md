@@ -7,13 +7,16 @@ Below you'll find instructions for standard and advanced deployment modes, envir
 
 ## Altair 8800 Standard Mode
 
-This option is recommended for most users and works on 64-bit versions of Linux, macOS, Windows, and Raspberry Pi.
+This option is recommended for most users and works on 32-bit and 64-bit (recommended) versions of Linux, macOS, Windows, and Raspberry Pi.
 
 ```shell
 docker run -d --user root -p 8082:8082 -p 8088:8080 --name altair8800 --rm glovebox/altair8800:latest
 ```
 
-Note: Port 80 provides access to the Web Terminal interface, while port 8082 enables Altair emulator terminal I/O through a WebSocket connection.
+!!! note "Ports"
+
+    - Port 8088 provides access to the Web Terminal interface
+    - Port 8082 enables Altair emulator terminal I/O through a WebSocket connection.
 
 ## Altair 8800 Advanced Modes
 
@@ -29,19 +32,22 @@ You can enable advanced features by setting environment variables. These options
 
 The Altair emulator supports several Docker environment variables. The easiest way to set these is with the env file `--env-file` option. You'll find a sample `altair.env` file in the [root folder](https://github.com/gloveboxes/Altair-8800-Emulator/blob/main/altair.env){:target=_blank} of this project. Create a copy of this file, modify it as needed and save it somewhere convenient and safe especially if it contains sensitive information like API keys.
 
-Open the `altair.env` file in a text editor and set the environment variables you want to use. Then, start the Altair emulator Docker container with the `--env-file` option.
+Store your modified `altair.env` file in a secure location, especially if it contains sensitive information such as API keys. Open the `altair.env` file in a text editor and set the environment variables you want to use. Then, start the Altair emulator Docker container with the `--env-file` option.
 
 #### Supported Environment Variables
 
-| Variable | Description |
-|---|---|
-| TZ | Set the time zone (e.g., Australia/Sydney) |
-| MQTT_HOST | MQTT broker host |
-| MQTT_PORT | MQTT broker port (default: 1883) |
-| MQTT_CLIENT_ID | Unique MQTT client ID |
-| OPENAI_API_KEY | OpenAI API Keuy |
-| OPEN_WEATHER_MAP_API_KEY | API key for Open Weather Map |
-| FRONT_PANEL | Front panel type (sensehat, kit, none; default: none) |
+| Variable                 | Description                                                               |
+| ------------------------ | ------------------------------------------------------------------------- |
+| TZ                       | Set the time zone (e.g., Australia/Sydney)                                |
+| MQTT_HOST                | MQTT broker host                                                          |
+| MQTT_PORT                | MQTT broker port (**default: 1883**)                                      |
+| MQTT_CLIENT_ID           | Unique MQTT client ID                                                     |
+| OPENAI_API_KEY           | OpenAI API Key                                                            |
+| OPENAI_ENDPOINT          | OpenAI Endpoint (**default: https://api.openai.com/v1/chat/completions**) |
+| OPEN_WEATHER_MAP_API_KEY | API key for Open Weather Map                                              |
+| FRONT_PANEL              | Front panel type (sensehat, kit, none; **default: none**)                 |
+
+
 
 ```shell
 docker run -d --env-file altair.env --user root -p 8082:8082 -p 8088:8080 --name altair8800 --rm glovebox/altair8800:latest
@@ -77,12 +83,20 @@ Configure your OpenAI API Key
 
 - OPENAI_API_KEY
 
+### OpenAI Endpoint
+
+ - The default endpoint is **https://api.openai.com/v1/chat/completions**.
+ - For LM Studio, use **http://IP_ADDRESS:1234/v1/chat/completions**. If Altair runs in a container, use the LM Studio server's IP address—not localhost—since localhost refers to the container itself.
+
 ### Raspberry Pi with Pi Sense HAT
 
 You can run the Altair emulator on a Raspberry Pi with a Pi Sense HAT attached. The Pi Sense HAT 8x8 LED panel displays the Altair address and data bus information. For games, you can switch between *Font* and *bitmap* display modes.
 
-| Raspberry Pi with Pi Sense HAT  | Raspberry Pi Sense HAT |
-|--|--|
+
+You can switch between *Font* and *bitmap* display modes using the emulator's front panel controls or configuration options. Refer to the emulator documentation for specific instructions on changing display modes.
+
+| Raspberry Pi with Pi Sense HAT                                                       | Raspberry Pi Sense HAT                                                                   |
+| ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
 | ![The image shows the address and data bus LEDs](img/raspberry_pi_sense_hat_map.png) | ![The gif shows the address and data bus LEDs in action](img/raspberry_pi_sense_hat.gif) |
 
 #### Enable the Pi Sense HAT
@@ -125,10 +139,11 @@ docker run -d -v altair-disks:/app/Disks --env-file altair.env --user root -p 80
 
 To access the Altair emulator, open the Web Terminal:
 
+
 1. Familiarize yourself with the [Web Terminal](../20-fundamentals/25-Web-Terminal.md) and the CP/M operating system.
 2. Open your web browser:
-    - Navigate to `http://localhost` if you deployed the Altair emulator on your local computer.
-    - Navigate to `http://hostname_or_ip_address:8082` if you deployed the Altair emulator on a remote computer.
+    - If running locally, go to `http://localhost:8082`.
+    - If running remotely, go to `http://<hostname_or_ip_address>:8082`.
 
     ![The following image is of the web terminal command prompt](../20-fundamentals/img/web_terminal_intro.png)
 
@@ -136,25 +151,29 @@ To access the Altair emulator, open the Web Terminal:
 
 To connect your local Web Terminal to a remote Altair emulator, add the `altair` query parameter to the URL. For example, if the remote Altair emulator is running at `192.168.1.100`, open your browser and go to `http://localhost?altair=192.168.1.100`. This requires the Web Terminal to be running on your local machine, either in a separate Docker container or installed locally.
 
+**Note:** The Web Terminal must be running locally (either in a separate Docker container or installed on your machine) to connect to a remote Altair emulator using the `altair` query parameter.
+
 ## Docker Tips and Tricks
 
 ### Manage the Altair Emulator Docker Container
 
 **Stop the container:**
 
+Stops the running Altair emulator container:
 ```bash
 docker stop altair8800
 ```
 
 **Restart the container:**
 
+Restarts a previously stopped Altair emulator container:
 ```bash
 docker start altair8800
 ```
 
 **Delete the container:**
-First, stop the container, then remove it:
 
+Removes the Altair emulator container after stopping it:
 ```bash
 docker container rm altair8800
 ```
@@ -170,7 +189,7 @@ docker volume inspect altair-disks
 **Check data in the volume:**
 
 ```bash
-sudo ls /var/lib/docker/volumes/altair-disks/_data -all
+sudo ls -al /var/lib/docker/volumes/altair-disks/_data
 ```
 
 **Remove the volume:**
