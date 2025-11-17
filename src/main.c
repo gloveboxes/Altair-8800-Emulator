@@ -32,7 +32,7 @@ uint16_t bus_switches = 0x00;
 
 const uint8_t reverse_lut[16] = {0x0, 0x8, 0x4, 0xc, 0x2, 0xa, 0x6, 0xe, 0x1, 0x9, 0x5, 0xd, 0x3, 0xb, 0x7, 0xf};
 
-const char ALTAIR_EMULATOR_VERSION[] = "5.2.8";
+const char ALTAIR_EMULATOR_VERSION[] = "5.2.9";
 enum PANEL_MODE_T panel_mode         = PANEL_BUS_MODE;
 char msgBuffer[MSG_BUFFER_BYTES]     = {0};
 const char *network_interface        = NULL;
@@ -485,7 +485,7 @@ static void *altair_thread(void *arg)
         else
         {
             // Sleep briefly when CPU is stopped to avoid busy-waiting
-            nanosleep(&(struct timespec){0, 100 * ONE_MS}, NULL);
+            nanosleep(&(struct timespec){0, 200 * ONE_MS}, NULL);
         }
     }
 
