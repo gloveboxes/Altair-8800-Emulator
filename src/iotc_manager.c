@@ -28,28 +28,47 @@ void publish_telemetry(ENVIRONMENT_TELEMETRY *environment)
 
     memset(msgBuffer, 0, MSG_BUFFER_BYTES);
 
+    // Extract all values to local variables to ensure proper alignment and avoid 
+    // varargs issues on 32-bit ARM systems with hard-float ABI
+    long timestamp = (long)time(NULL);
+    
+    // Extract floats - they will be promoted to double in varargs
+    double wind_speed = (double)environment->latest.weather.wind_speed;
+    double aqi = (double)environment->latest.pollution.air_quality_index;
+    double co = (double)environment->latest.pollution.carbon_monoxide;
+    double no = (double)environment->latest.pollution.nitrogen_monoxide;
+    double no2 = (double)environment->latest.pollution.nitrogen_dioxide;
+    double o3 = (double)environment->latest.pollution.ozone;
+    double so2 = (double)environment->latest.pollution.sulphur_dioxide;
+    double nh3 = (double)environment->latest.pollution.ammonia;
+    double pm2_5 = (double)environment->latest.pollution.pm2_5;
+    double pm10 = (double)environment->latest.pollution.pm10;
+    
+    // Extract doubles
+    double latitude = environment->locationInfo.lat;
+    double longitude = environment->locationInfo.lng;
+
     // Use dx_jsonSerialize for type-safe serialization
-    // This prevents varargs alignment issues on 32-bit systems where floats/doubles
-    // can be misaligned causing data corruption
+    // All floats are pre-converted to doubles to avoid varargs promotion issues
     if (dx_jsonSerialize(msgBuffer, MSG_BUFFER_BYTES, 18,
         DX_JSON_STRING, "device", mqtt_config.client_id,
-        DX_JSON_LONG,   "timestamp", time(NULL),
+        DX_JSON_LONG,   "timestamp", timestamp,
         DX_JSON_INT,    "temperature", environment->latest.weather.temperature,
         DX_JSON_INT,    "pressure", environment->latest.weather.pressure,
         DX_JSON_INT,    "humidity", environment->latest.weather.humidity,
-        DX_JSON_FLOAT,  "windspeed", environment->latest.weather.wind_speed,
+        DX_JSON_DOUBLE, "windspeed", wind_speed,
         DX_JSON_INT,    "winddirection", environment->latest.weather.wind_direction,
-        DX_JSON_FLOAT,  "aqi", environment->latest.pollution.air_quality_index,
-        DX_JSON_FLOAT,  "co", environment->latest.pollution.carbon_monoxide,
-        DX_JSON_FLOAT,  "no", environment->latest.pollution.nitrogen_monoxide,
-        DX_JSON_FLOAT,  "no2", environment->latest.pollution.nitrogen_dioxide,
-        DX_JSON_FLOAT,  "o3", environment->latest.pollution.ozone,
-        DX_JSON_FLOAT,  "so2", environment->latest.pollution.sulphur_dioxide,
-        DX_JSON_FLOAT,  "nh3", environment->latest.pollution.ammonia,
-        DX_JSON_FLOAT,  "pm2_5", environment->latest.pollution.pm2_5,
-        DX_JSON_FLOAT,  "pm10", environment->latest.pollution.pm10,
-        DX_JSON_DOUBLE, "latitude", environment->locationInfo.lat,
-        DX_JSON_DOUBLE, "longitude", environment->locationInfo.lng))
+        DX_JSON_DOUBLE, "aqi", aqi,
+        DX_JSON_DOUBLE, "co", co,
+        DX_JSON_DOUBLE, "no", no,
+        DX_JSON_DOUBLE, "no2", no2,
+        DX_JSON_DOUBLE, "o3", o3,
+        DX_JSON_DOUBLE, "so2", so2,
+        DX_JSON_DOUBLE, "nh3", nh3,
+        DX_JSON_DOUBLE, "pm2_5", pm2_5,
+        DX_JSON_DOUBLE, "pm10", pm10,
+        DX_JSON_DOUBLE, "latitude", latitude,
+        DX_JSON_DOUBLE, "longitude", longitude))
     {
         // Publish telemetry via MQTT instead of Azure IoT Hub
         DX_MQTT_MESSAGE mqtt_msg = {
