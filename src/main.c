@@ -197,8 +197,6 @@ static DX_TIMER_HANDLER(heart_beat_handler)
 
 DX_TIMER_HANDLER_END
 
-
-
 /// <summary>
 /// Client connected successfully
 /// </summary>
@@ -215,7 +213,7 @@ static void client_disconnect_cb(void)
 {
     if (altair_config.stop_cpu_on_disconnect)
     {
-        set_cpu_operating_mode(CPU_STOPPED);
+        set_cpu_operating_mode(CPU_LOW_POWER);
         dx_Log_Debug("Client disconnected: CPU stopped\n");
     }
     else
@@ -494,16 +492,24 @@ static void *altair_thread(void *arg)
     dx_Log_Debug("Altair thread: Entering main CPU loop\n");
     while (true)
     {
-        if (get_cpu_operating_mode_fast() == CPU_RUNNING)
+        CPU_OPERATING_MODE mode = get_cpu_operating_mode_fast();
+        
+        if (mode == CPU_RUNNING)
+        {
+            // Hot path: run many cycles before checking mode again
+            for (int i = 0; i < 1000; i++)
+            {
+                i8080_cycle(&cpu);
+            }
+        }
+        else if (mode == CPU_LOW_POWER)
         {
             i8080_cycle(&cpu);
+            nanosleep(&(struct timespec){0, 1000}, NULL);
         }
         else
         {
-            // Sleep briefly when CPU is stopped to avoid busy-waiting
-            // nanosleep(&(struct timespec){0, 200 * ONE_MS}, NULL);
-            // 1000 nanosecond delay
-            nanosleep(&(struct timespec){0, 1000}, NULL);
+            nanosleep(&(struct timespec){0, 200 * ONE_MS}, NULL);
         }
     }
 

@@ -23,7 +23,8 @@
 typedef enum
 {
 	CPU_RUNNING = 1,
-	CPU_STOPPED = 2
+	CPU_STOPPED = 2,
+	CPU_LOW_POWER = 3
 } CPU_OPERATING_MODE;
 
 typedef enum
