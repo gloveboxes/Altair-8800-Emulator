@@ -12,7 +12,7 @@ The Altair 8800 is a vintage microcomputer that has a unique architecture and pr
 
 ## Getting Started with Vibe-Coding for the Altair 8800
 
-1. **Choose an LLM Tool**: Select a Large Language Model platform that supports code generation, such as OpenAI's GPT-4, Codex, or similar services.
+1. **Choose an LLM Tool**: Select a Large Language Model platform that supports code generation, such as OpenAI's GPT-5.1-Codex, Claude Sonnet 4.5 or similar services.
 2. **Set Up Your Environment**: Ensure you have access to the Altair 8800 emulator or hardware, along with any necessary development tools.
 3. **Define Your Goals**: Clearly outline what you want to achieve with your Altair programming project.
 4. **Craft Prompts**: Write clear and specific prompts to guide the LLM in generating relevant code snippets.

@@ -26,42 +26,34 @@ void publish_telemetry(ENVIRONMENT_TELEMETRY *environment)
         return;
     }
 
-    const char *publish_template = "{"
-                                   "\"device\":\"%s\","
-                                   "\"timestamp\":%ld,"
-                                   "\"temperature\":%d,"
-                                   "\"pressure\":%d,"
-                                   "\"humidity\":%d,"
-                                   "\"windspeed\":%.2f,"
-                                   "\"winddirection\":%d,"
-                                   "\"aqi\":%.2f,"
-                                   "\"co\":%.2f,"
-                                   "\"no\":%.2f,"
-                                   "\"no2\":%.2f,"
-                                   "\"o3\":%.2f,"
-                                   "\"so2\":%.2f,"
-                                   "\"nh3\":%.2f,"
-                                   "\"pm2_5\":%.2f,"
-                                   "\"pm10\":%.2f,"
-                                   "\"latitude\":%.6f,"
-                                   "\"longitude\":%.6f"
-                                   "}";
-
-    size_t msg_len = (size_t)snprintf(msgBuffer, sizeof(msgBuffer), publish_template, mqtt_config.client_id, time(NULL), environment->latest.weather.temperature,
-        environment->latest.weather.pressure, environment->latest.weather.humidity, environment->latest.weather.wind_speed,
-        environment->latest.weather.wind_direction, environment->latest.pollution.air_quality_index,
-        environment->latest.pollution.carbon_monoxide, environment->latest.pollution.nitrogen_monoxide,
-        environment->latest.pollution.nitrogen_dioxide, environment->latest.pollution.ozone, environment->latest.pollution.sulphur_dioxide,
-        environment->latest.pollution.ammonia, environment->latest.pollution.pm2_5, environment->latest.pollution.pm10,
-        environment->locationInfo.lat, environment->locationInfo.lng);
-
-    if (msg_len < sizeof(msgBuffer))
+    // Use dx_jsonSerialize for type-safe serialization
+    // This prevents varargs alignment issues on 32-bit systems where floats/doubles
+    // can be misaligned causing data corruption
+    if (dx_jsonSerialize(msgBuffer, sizeof(msgBuffer), 18,
+        DX_JSON_STRING, "device", mqtt_config.client_id,
+        DX_JSON_LONG,   "timestamp", time(NULL),
+        DX_JSON_INT,    "temperature", environment->latest.weather.temperature,
+        DX_JSON_INT,    "pressure", environment->latest.weather.pressure,
+        DX_JSON_INT,    "humidity", environment->latest.weather.humidity,
+        DX_JSON_FLOAT,  "windspeed", environment->latest.weather.wind_speed,
+        DX_JSON_INT,    "winddirection", environment->latest.weather.wind_direction,
+        DX_JSON_FLOAT,  "aqi", environment->latest.pollution.air_quality_index,
+        DX_JSON_FLOAT,  "co", environment->latest.pollution.carbon_monoxide,
+        DX_JSON_FLOAT,  "no", environment->latest.pollution.nitrogen_monoxide,
+        DX_JSON_FLOAT,  "no2", environment->latest.pollution.nitrogen_dioxide,
+        DX_JSON_FLOAT,  "o3", environment->latest.pollution.ozone,
+        DX_JSON_FLOAT,  "so2", environment->latest.pollution.sulphur_dioxide,
+        DX_JSON_FLOAT,  "nh3", environment->latest.pollution.ammonia,
+        DX_JSON_FLOAT,  "pm2_5", environment->latest.pollution.pm2_5,
+        DX_JSON_FLOAT,  "pm10", environment->latest.pollution.pm10,
+        DX_JSON_DOUBLE, "latitude", environment->locationInfo.lat,
+        DX_JSON_DOUBLE, "longitude", environment->locationInfo.lng))
     {
         // Publish telemetry via MQTT instead of Azure IoT Hub
         DX_MQTT_MESSAGE mqtt_msg = {
             .topic = "v1/devices/me/telemetry", 
             .payload = msgBuffer, 
-            .payload_length = msg_len, 
+            .payload_length = strlen(msgBuffer), 
             .qos = 0, 
             .retain = false
         };
@@ -69,6 +61,6 @@ void publish_telemetry(ENVIRONMENT_TELEMETRY *environment)
     }
     else
     {
-        Log_Debug("MsgBuffer too small. Msg not sent.\n");
+        Log_Debug("Failed to serialize telemetry JSON. Msg not sent.\n");
     }
 }
