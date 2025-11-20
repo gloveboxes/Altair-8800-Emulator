@@ -78,7 +78,7 @@ void publish_telemetry(ENVIRONMENT_TELEMETRY *environment)
             .qos = 0, 
             .retain = false
         };
-        printf("Publishing telemetry: %s\n", msgBuffer);
+        // printf("Publishing telemetry: %s\n", msgBuffer);
         dx_mqttPublish(&mqtt_msg);
     }
     else
