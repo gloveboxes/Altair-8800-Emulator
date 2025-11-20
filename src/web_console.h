@@ -29,7 +29,7 @@ DX_DECLARE_TIMER_HANDLER(ws_ping_pong_handler);
 // WebSocket Server Functions
 // =============================================================================
 
-void init_web_socket_server(void (*client_connected_cb)(void));
+void init_web_socket_server(void (*client_connected_cb)(void), void (*client_disconnected_cb)(void));
 
 // =============================================================================
 // Output Functions

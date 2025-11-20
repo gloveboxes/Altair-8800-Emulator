@@ -57,6 +57,7 @@ static size_t command_buffer_length             = 0;
 // WebSocket client management
 static atomic_uintptr_t current_client = 0;
 static void (*_client_connected_cb)(void);
+static void (*_client_disconnected_cb)(void);
 
 // Session management
 static const int session_minutes = 1 * 60 * 30; // 30 minutes
@@ -353,6 +354,7 @@ void onclose(ws_cli_conn_t client)
 
     printf("Session closed\n");
     atomic_store(&current_client, 0);
+    _client_disconnected_cb();
 }
 
 /// <summary>
@@ -457,7 +459,7 @@ void onmessage(ws_cli_conn_t client, const unsigned char *msg, uint64_t size, in
 /// Initialize the WebSocket server
 /// </summary>
 /// <param name="client_connected_cb">Callback function called when client connects</param>
-void init_web_socket_server(void (*client_connected_cb)(void))
+void init_web_socket_server(void (*client_connected_cb)(void), void (*client_disconnected_cb)(void))
 {
     // Validate input parameter
     if (client_connected_cb == NULL)
@@ -467,6 +469,7 @@ void init_web_socket_server(void (*client_connected_cb)(void))
     }
 
     _client_connected_cb = client_connected_cb;
+    _client_disconnected_cb = client_disconnected_cb;
 
     // Start timers
     dx_timerStart(&tmr_expire_session);
