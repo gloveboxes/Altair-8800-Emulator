@@ -26,10 +26,12 @@ void publish_telemetry(ENVIRONMENT_TELEMETRY *environment)
         return;
     }
 
+    memset(msgBuffer, 0, MSG_BUFFER_BYTES);
+
     // Use dx_jsonSerialize for type-safe serialization
     // This prevents varargs alignment issues on 32-bit systems where floats/doubles
     // can be misaligned causing data corruption
-    if (dx_jsonSerialize(msgBuffer, sizeof(msgBuffer), 18,
+    if (dx_jsonSerialize(msgBuffer, MSG_BUFFER_BYTES, 18,
         DX_JSON_STRING, "device", mqtt_config.client_id,
         DX_JSON_LONG,   "timestamp", time(NULL),
         DX_JSON_INT,    "temperature", environment->latest.weather.temperature,
@@ -57,6 +59,7 @@ void publish_telemetry(ENVIRONMENT_TELEMETRY *environment)
             .qos = 0, 
             .retain = false
         };
+        printf("Publishing telemetry: %s\n", msgBuffer);
         dx_mqttPublish(&mqtt_msg);
     }
     else
