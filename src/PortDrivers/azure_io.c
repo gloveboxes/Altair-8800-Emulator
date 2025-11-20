@@ -1,6 +1,6 @@
 #include "azure_io.h"
 
-#include "iotc_manager.h"
+#include "mqtt_manager.h"
 
 typedef struct
 {

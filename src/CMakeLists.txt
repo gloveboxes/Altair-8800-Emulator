@@ -94,7 +94,7 @@ set(Source
     "io_ports.c"
     "cpu_monitor.c"
     "difference_disk.c"
-    "iotc_manager.c"
+    "mqtt_manager.c"
     "web_console.c"
     "main.c"
     "environment.c"

@@ -1,7 +1,7 @@
 /* Copyright (c) Microsoft Corporation. All rights reserved.
    Licensed under the MIT License. */
 
-#include "iotc_manager.h"
+#include "mqtt_manager.h"
 #include "dx_mqtt.h"
 
 // External reference to global MQTT configuration

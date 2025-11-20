@@ -31,7 +31,7 @@ extern "C"
 #include "altair_config.h"
 #include "altair_panel.h"
 #include "cpu_monitor.h"
-#include "iotc_manager.h"
+#include "mqtt_manager.h"
 #include "utils.h"
 #include "web_console.h"
 #include <curl/curl.h>
