@@ -45,6 +45,11 @@ if [ ! -z "$FRONT_PANEL" ]; then
     ARGS="$ARGS -f $FRONT_PANEL"
 fi
 
+# CPU Behavior Configuration
+if [ ! -z "$STOP_CPU_ON_DISCONNECT" ]; then
+    ARGS="$ARGS -s $STOP_CPU_ON_DISCONNECT"
+fi
+
 # External Services
 if [ ! -z "$OPEN_WEATHER_MAP_API_KEY" ]; then
     ARGS="$ARGS -o $OPEN_WEATHER_MAP_API_KEY"

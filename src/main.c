@@ -209,11 +209,19 @@ static void client_connected_cb(void)
 }
 
 /// <summary>
-/// Client connected successfully
+/// Client disconnected - optionally stop CPU based on configuration
 /// </summary>
 static void client_disconnect_cb(void)
 {
-    set_cpu_operating_mode(CPU_STOPPED);
+    if (altair_config.stop_cpu_on_disconnect)
+    {
+        set_cpu_operating_mode(CPU_STOPPED);
+        dx_Log_Debug("Client disconnected: CPU stopped\n");
+    }
+    else
+    {
+        dx_Log_Debug("Client disconnected: CPU continues running\n");
+    }
 }
 
 /// <summary>
