@@ -88,8 +88,6 @@ extern DX_TIMER_BINDING tmr_report_memory_usage;
 extern DX_TIMER_BINDING tmr_update_environment;
 
 extern DX_ASYNC_BINDING async_expire_session;
-extern DX_ASYNC_BINDING async_publish_json;
-extern DX_ASYNC_BINDING async_publish_weather;
 
 // clang-format on
 

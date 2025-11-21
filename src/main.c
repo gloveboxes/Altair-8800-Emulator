@@ -46,13 +46,9 @@ DX_TIMER_BINDING tmr_report_memory_usage = {.repeat = &(struct timespec){20, 0},
 DX_TIMER_BINDING tmr_update_environment  = {.repeat = &(struct timespec){20, 0}, .name = "tmr_update_environment", .handler = update_environment_handler};
 
 DX_ASYNC_BINDING async_expire_session  = {.name = "async_expire_session", .handler = async_expire_session_handler};
-DX_ASYNC_BINDING async_publish_json    = {.name = "async_publish_json", .handler = async_publish_json_handler};
-DX_ASYNC_BINDING async_publish_weather = {.name = "async_publish_weather", .handler = async_publish_weather_handler};
 
 DX_ASYNC_BINDING *async_bindings[] = {
     &async_expire_session,
-    &async_publish_json,
-    &async_publish_weather,
 };
 
 DX_TIMER_BINDING *timer_bindings[] = {

@@ -40,12 +40,6 @@ void io_port_out(uint8_t port, uint8_t data)
             ru.len = time_output(port, data, ru.buffer, sizeof(ru.buffer));
             break;
 
-        // Azure IoT IO Ports
-        case 31: // Publish weather json
-        case 32: // Publish weather
-            ru.len = azure_output(port, data, ru.buffer, sizeof(ru.buffer));
-            break;
-
         // Weather IO Ports
         case 34: // Load weather key
         case 35: // Load weather value
@@ -147,12 +141,6 @@ uint8_t io_port_in(uint8_t port)
         case 29: // Timer 2 - Has milliseconds timer expired
         case 30: // Has seconds timer expired
             retVal = time_input(port);
-            break;
-
-        // Weather IO Ports
-        case 31: // Is publish weather json pending
-        case 32: // Is publish weather pending
-            retVal = azure_input(port);
             break;
 
         // File transfer IO Ports

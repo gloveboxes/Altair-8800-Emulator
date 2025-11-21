@@ -102,7 +102,6 @@ set(Source
     "env_open_weather_map.c"
     "location_from_ip.c"
     "utils.c"  
-    "PortDrivers/azure_io.c"
     "PortDrivers/led_matrix_io.c"
     "PortDrivers/weather_io.c"
     "PortDrivers/time_io.c"
