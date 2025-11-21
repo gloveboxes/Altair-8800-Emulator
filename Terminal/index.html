@@ -27,7 +27,10 @@
         reconnectDelay: 2000,
         pasteHandler: null,
         keyHandler: null,
-        cleanupInterval: null
+        cleanupInterval: null,
+        // Buffering for WebSocket messages (60 fps optimization)
+        messageBuffer: "",
+        renderScheduled: false
       };
 
       // Configuration constants
@@ -457,6 +460,23 @@
 
 
       /**
+       * Flush buffered messages to terminal
+       * Called via requestAnimationFrame for ~60 fps updates
+       */
+      function flushMessageBuffer() {
+        if (state.messageBuffer.length > 0 && state.term) {
+          try {
+            state.term.write(state.messageBuffer);
+            state.messageBuffer = "";
+          } catch (error) {
+            console.error("Error writing buffered data to terminal:", error);
+            state.messageBuffer = ""; // Clear buffer on error to prevent infinite retry
+          }
+        }
+        state.renderScheduled = false;
+      }
+
+      /**
        * Set up WebSocket event handlers
        */
       function setupWebSocketEventHandlers(altairAddress) {
@@ -474,16 +494,25 @@
 
         state.ws.onmessage = (event) => {
           if (state.term && event.data) {
-            try {
-              state.term.write(event.data);
-            } catch (error) {
-              console.error("Error writing to terminal:", error);
+            // Buffer incoming data instead of writing immediately
+            state.messageBuffer += event.data;
+            
+            // Schedule a render if not already queued (~60 fps via requestAnimationFrame)
+            if (!state.renderScheduled) {
+              state.renderScheduled = true;
+              requestAnimationFrame(flushMessageBuffer);
             }
           }
         };
 
         state.ws.onclose = (event) => {
           console.log("WebSocket closed:", event.code, event.reason);
+          
+          // Flush any remaining buffered data before connection closes
+          if (state.messageBuffer.length > 0) {
+            flushMessageBuffer();
+          }
+          
           state.connected = false;
           state.ws = null;
           showMessage('Connection closed.', true);
@@ -500,6 +529,11 @@
        * Close WebSocket connection cleanly
        */
       function closeConnection() {
+        // Flush any remaining buffered data before closing
+        if (state.messageBuffer.length > 0) {
+          flushMessageBuffer();
+        }
+        
         if (state.ws) {
           try {
             // Clear event handlers explicitly to prevent memory leaks
@@ -515,6 +549,10 @@
           state.ws = null;
         }
         state.connected = false;
+        
+        // Clear buffer state
+        state.messageBuffer = "";
+        state.renderScheduled = false;
       }
 
       /**
@@ -821,7 +859,7 @@
     </div>
   </div>
 
-  <div id="version">3.2.0</div>
+  <div id="version">3.2.1</div>
 
 </body>
 
