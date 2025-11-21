@@ -46,8 +46,8 @@ if [ ! -z "$FRONT_PANEL" ]; then
 fi
 
 # CPU Behavior Configuration
-if [ ! -z "$STOP_CPU_ON_DISCONNECT" ]; then
-    ARGS="$ARGS -s $STOP_CPU_ON_DISCONNECT"
+if [ ! -z "$SLOW_CPU_ON_DISCONNECT" ]; then
+    ARGS="$ARGS -s $SLOW_CPU_ON_DISCONNECT"
 fi
 
 # External Services

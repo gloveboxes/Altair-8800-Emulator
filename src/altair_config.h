@@ -17,7 +17,7 @@
 	char *openai_api_key;
 	char *openai_endpoint;
 	FRONT_PANEL_SELECTION front_panel_selection;
-	bool stop_cpu_on_disconnect;
+	bool slow_cpu_on_disconnect;
 } ALTAIR_CONFIG_T;
 
 bool parse_altair_cmd_line_arguments(int argc, char *argv[], ALTAIR_CONFIG_T *altairConfig);

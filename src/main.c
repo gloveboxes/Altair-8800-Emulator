@@ -207,14 +207,14 @@ static void client_connected_cb(void)
 }
 
 /// <summary>
-/// Client disconnected - optionally stop CPU based on configuration
+/// Client disconnected - optionally slows CPU based on configuration
 /// </summary>
 static void client_disconnect_cb(void)
 {
-    if (altair_config.stop_cpu_on_disconnect)
+    if (altair_config.slow_cpu_on_disconnect)
     {
         set_cpu_operating_mode(CPU_LOW_POWER);
-        dx_Log_Debug("Client disconnected: CPU stopped\n");
+        dx_Log_Debug("Client disconnected: CPU in low power mode\n");
     }
     else
     {

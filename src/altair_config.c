@@ -27,7 +27,7 @@ static const char *cmdLineArgsUsageText =
 	"  -f, --FrontPanel <mode>        Front panel selection: sensehat, kit, none (default: none)\n"
 	"\n"
 	"CPU Behavior:\n"
-	"  -s, --StopCpuOnDisconnect <bool> Stop CPU when client disconnects: true, false (default: false)\n"
+	"  -s, --SlowCpuOnDisconnect <bool> Slow CPU when client disconnects: true, false (default: false)\n"
 	"\n"
 	"External Services:\n"
 	"  -o, --OpenWeatherMapKey <key>  OpenWeatherMap API key\n"
@@ -92,7 +92,7 @@ bool parse_altair_cmd_line_arguments(int argc, char *argv[], ALTAIR_CONFIG_T *al
 		{.name = "MqttPassword", .has_arg = required_argument, .flag = NULL, .val = 'P'},
 		{.name = "NetworkInterface", .has_arg = required_argument, .flag = NULL, .val = 'n'},
 		{.name = "FrontPanel", .has_arg = required_argument, .flag = NULL, .val = 'f'},
-		{.name = "StopCpuOnDisconnect", .has_arg = required_argument, .flag = NULL, .val = 's'},
+		{.name = "SlowCpuOnDisconnect", .has_arg = required_argument, .flag = NULL, .val = 's'},
 		{.name = "OpenWeatherMapKey", .has_arg = required_argument, .flag = NULL, .val = 'o'},
 		{.name = "OpenAIKey", .has_arg = required_argument, .flag = NULL, .val = 'a'},
 		{.name = "OpenAIEndpoint", .has_arg = required_argument, .flag = NULL, .val = 'e'},
@@ -108,8 +108,8 @@ bool parse_altair_cmd_line_arguments(int argc, char *argv[], ALTAIR_CONFIG_T *al
 	altair_config->front_panel_selection      = FRONT_PANEL_SELECTION_NONE;
 	altair_config->openai_endpoint = "https://api.openai.com/v1/chat/completions";
 	
-	// Default behavior: keep CPU running on disconnect (can be overridden with command line option)
-	altair_config->stop_cpu_on_disconnect = true;
+	// Default behavior: Slow CPU on disconnect (can be overridden with command line option)
+	altair_config->slow_cpu_on_disconnect = true;
 	
 	// Generate a unique client ID with timestamp to avoid conflicts
 	static char unique_client_id[64];
@@ -155,11 +155,11 @@ bool parse_altair_cmd_line_arguments(int argc, char *argv[], ALTAIR_CONFIG_T *al
 		case 's':
 			if (strcasecmp(optarg, "false") == 0 || strcmp(optarg, "0") == 0 || strcasecmp(optarg, "no") == 0)
 			{
-				altair_config->stop_cpu_on_disconnect = false;
+				altair_config->slow_cpu_on_disconnect = false;
 			}
 			else if (strcasecmp(optarg, "true") == 0 || strcmp(optarg, "1") == 0 || strcasecmp(optarg, "yes") == 0)
 			{
-				altair_config->stop_cpu_on_disconnect = true;
+				altair_config->slow_cpu_on_disconnect = true;
 			}
 			break;
 		case 'o':
