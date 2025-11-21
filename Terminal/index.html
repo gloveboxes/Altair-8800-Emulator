@@ -466,6 +466,7 @@
       function flushMessageBuffer() {
         if (state.messageBuffer.length > 0 && state.term) {
           try {
+            console.log(`Flushing ${state.messageBuffer.length} chars to terminal`);
             state.term.write(state.messageBuffer);
             state.messageBuffer = "";
           } catch (error) {

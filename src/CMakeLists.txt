@@ -47,7 +47,7 @@ if (ALTAIR_CLOUD)
 endif(ALTAIR_CLOUD)
 
 # overide wsServer MAX_CLIENTS
-add_compile_definitions(MAX_CLIENTS=1)
+add_compile_definitions(MAX_CLIENTS=2)
 
 # set(DISABLE_IO_MOCKING ON CACHE  BOOL "DISABLE IO mocking for AzureSphereRemoteX.Client" FORCE )
 

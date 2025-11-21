@@ -326,6 +326,14 @@ void onopen(ws_cli_conn_t client)
         return;
     }
 
+    // Check if there's an existing connection
+    ws_cli_conn_t existing_client = (ws_cli_conn_t)atomic_load(&current_client);
+    if (existing_client != 0)
+    {
+        printf("Closing existing session to accept new connection\n");
+        ws_close_client(existing_client);
+    }
+
     printf("New session\n");
     atomic_store(&current_client, (uintptr_t)client);
 
