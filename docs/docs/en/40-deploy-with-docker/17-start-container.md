@@ -46,6 +46,7 @@ Store your modified `altair.env` file in a secure location, especially if it con
 | OPENAI_ENDPOINT          | OpenAI Endpoint (**default: https://api.openai.com/v1/chat/completions**) |
 | OPEN_WEATHER_MAP_API_KEY | API key for Open Weather Map                                              |
 | FRONT_PANEL              | Front panel type (sensehat, kit, none; **default: none**)                 |
+| SLOW_CPU_ON_DISCONNECT   | Slow CPU on Browser Disconnect. Defaults to true and power saving mode.   |
 
 
 
