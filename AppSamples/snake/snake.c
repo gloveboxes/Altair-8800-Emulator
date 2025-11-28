@@ -14,10 +14,7 @@
  */
 
 #include "dxterm.h"
-
-/* BDS C library hooks */
-int inp();    /* int inp(port); */
-int outp();   /* int outp(port, value); */
+#include "dxsys.h"
 
 
 
@@ -172,71 +169,9 @@ int snake_update_status()
 
 /* --- Random Number Generation --- */
 
-int abs(n)
-int n;
+unsigned get_random()
 {
-    return (n < 0) ? -n : n;
-}
-
-int string_to_int(s)
-char *s;
-{
-    int result;
-    int sign;
-
-    result = 0;
-    sign   = 1;
-
-    /* Skip leading spaces */
-    while (*s == ' ')
-        s++;
-
-    /* Check for sign */
-    if (*s == '-')
-    {
-        sign = -1;
-        s++;
-    }
-    else if (*s == '+')
-    {
-        s++;
-    }
-
-    /* Convert digits */
-    while (*s >= '0' && *s <= '9')
-    {
-        result = result * 10 + (*s - '0');
-        s++;
-    }
-
-    return result * sign;
-}
-
-int get_random()
-{
-    char random_str[16];
-    int i;
-    int ch;
-    int result;
-
-    /* Trigger hardware random number generation */
-    outp(44, 1);
-
-    /* Read the random number string from port 200 */
-    i = 0;
-    while (i < 15)
-    {
-        ch = inp(200);
-        if (ch == 0)
-            break;
-        random_str[i] = ch;
-        i++;
-    }
-    random_str[i] = 0;
-
-    /* Convert string to integer and make it positive */
-    result = string_to_int(random_str);
-    return abs(result);
+    return x_rand();
 }
 
 /* --- Food Management --- */
