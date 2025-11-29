@@ -159,8 +159,8 @@ void publish_message(const void *message, size_t message_length)
         return;
     }
 
-    // Send message directly to WebSocket
-    if (ws_sendframe(client, message, message_length, WS_FR_OP_TXT) == -1)
+    // Send message as binary data to avoid encoding issues
+    if (ws_sendframe(client, message, message_length, WS_FR_OP_BIN) == -1)
     {
         handle_websocket_error(client, "ws_sendframe failed - connection may be broken");
     }

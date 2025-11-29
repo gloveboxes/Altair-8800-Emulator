@@ -20,7 +20,6 @@
         ws: null,
         connected: false,
         online: navigator.onLine,
-        currentLine: "",
         term: null,
         reconnectAttempts: 0,
         maxReconnectAttempts: 5,
@@ -28,10 +27,13 @@
         pasteHandler: null,
         keyHandler: null,
         cleanupInterval: null,
-        // Buffering for WebSocket messages (60 fps optimization)
-        messageBuffer: "",
-        renderScheduled: false
+        userInitiatedDisconnect: false,
+        currentLine: "",
+        pendingOutput: "",
+        flushFrameRequest: null
       };
+
+      const decoder = new TextDecoder("utf-8", {fatal: false});
 
       // Configuration constants
       const CONFIG = {
@@ -45,8 +47,13 @@
         DEFAULT_THEME: 'dark',
         MAX_SCROLLBACK_LINES: 1000,
         BUFFER_CLEANUP_INTERVAL: 300000, // 5 minutes
-        MAX_CURRENT_LINE_LENGTH: 10000
+        RECONNECT_DELAY: 2000,
+        MAX_CURRENT_LINE_LENGTH: 1024,
+        DISPLAY_MAX_CHUNK_BYTES: 4096
       };
+
+      const requestFrame = (window.requestAnimationFrame || ((cb) => setTimeout(cb, 16))).bind(window);
+      const cancelFrame = (window.cancelAnimationFrame || clearTimeout).bind(window);
 
       // DOM element cache
       const elements = {
@@ -58,6 +65,95 @@
         sendCtrlCBtn: null,
         monitorBtn: null
       };
+
+      function sendToServer(data) {
+        if (!state.connected || !state.online || !state.ws || state.ws.readyState !== WebSocket.OPEN) {
+          return;
+        }
+
+        if (typeof data === "string" && data.length === 0) {
+          return;
+        }
+
+        if (data instanceof ArrayBuffer && data.byteLength === 0) {
+          return;
+        }
+
+        try {
+          state.ws.send(data);
+        } catch (error) {
+          console.error("Failed to send data:", error);
+          showError("Failed to send data to server");
+        }
+      }
+
+      function writeToTerminal(text) {
+        if (!text || !state.term) {
+          return;
+        }
+
+        try {
+          state.term.write(text);
+        } catch (error) {
+          console.error("Error writing payload to terminal:", error);
+        }
+      }
+
+      function enqueueTerminalOutput(text) {
+        if (!text) {
+          return;
+        }
+        state.pendingOutput += text;
+        ensureFlushLoop();
+      }
+
+      function ensureFlushLoop() {
+        if (state.flushFrameRequest !== null) {
+          return;
+        }
+
+        state.flushFrameRequest = requestFrame(() => {
+          state.flushFrameRequest = null;
+          flushPendingTerminalOutput(false);
+        });
+      }
+
+      function stopFlushLoop() {
+        if (state.flushFrameRequest !== null) {
+          cancelFrame(state.flushFrameRequest);
+          state.flushFrameRequest = null;
+        }
+      }
+
+      function flushPendingTerminalOutput(force = false) {
+        if (!state.term) {
+          return;
+        }
+
+        if (!state.pendingOutput) {
+          if (force) {
+            stopFlushLoop();
+          }
+          return;
+        }
+
+        if (force) {
+          writeToTerminal(state.pendingOutput);
+          state.pendingOutput = "";
+          stopFlushLoop();
+          return;
+        }
+
+        const chunk = state.pendingOutput.slice(0, CONFIG.DISPLAY_MAX_CHUNK_BYTES);
+        state.pendingOutput = state.pendingOutput.slice(chunk.length);
+        writeToTerminal(chunk);
+
+        if (state.pendingOutput.length > 0) {
+          ensureFlushLoop();
+        } else {
+          stopFlushLoop();
+        }
+      }
 
       /**
        * Initialize DOM element references with error checking
@@ -89,27 +185,33 @@
         if (!elements.sendCtrlCBtn) return;
         elements.sendCtrlCBtn.onclick = function() {
           if (state.connected && state.ws && state.ws.readyState === WebSocket.OPEN) {
-            try {
-              state.ws.send(String.fromCharCode(3)); // Ctrl+C
-            } catch (error) {
-              showError("Failed to send Ctrl+C to server");
-            }
+            sendControlCharacter(3); // Ctrl+C
           }
           if (state.term) {
             state.term.focus();
           }
         };
       }
+
       // Add sendEsc button click handler
       function setupSendEscButton() {
         if (!elements.sendEscBtn) return;
         elements.sendEscBtn.onclick = function() {
           if (state.connected && state.ws && state.ws.readyState === WebSocket.OPEN) {
-            try {
-              state.ws.send(String.fromCharCode(27)); // ESC key
-            } catch (error) {
-              showError("Failed to send ESC to server");
-            }
+            sendControlCharacter(27); // ESC key
+          }
+          if (state.term) {
+            state.term.focus();
+          }
+        };
+      }
+
+      // Add monitor button click handler
+      function setupMonitorButton() {
+        if (!elements.monitorBtn) return;
+        elements.monitorBtn.onclick = function() {
+          if (state.connected && state.ws && state.ws.readyState === WebSocket.OPEN) {
+            sendControlCharacter(13); // Ctrl+M (CR)
           }
           if (state.term) {
             state.term.focus();
@@ -171,6 +273,7 @@
         elements.reconnectBtn.onclick = function() {
           if (state.connected && state.ws && state.ws.readyState === WebSocket.OPEN) {
             // Disconnect
+            state.userInitiatedDisconnect = true;
             closeConnection();
             showMessage('Disconnected', true);
             updateReconnectButton();
@@ -247,14 +350,7 @@
 
           // Set up terminal prompt function
           state.term.prompt = (msg) => {
-            if (state.connected && state.online && state.ws) {
-              try {
-                state.ws.send(msg);
-              } catch (error) {
-                console.error("Failed to send message:", error);
-                showError("Failed to send data to server");
-              }
-            }
+            sendToServer(msg);
           };
 
           state.term.prompt("");
@@ -321,20 +417,21 @@
        * Handle key press events with better organization
        */
       function handleKeyPress(key, ev) {
-        // Handle Ctrl key combinations
         if (ev.ctrlKey) {
-          sendControlCharacter(String.fromCharCode(ev.keyCode));
+          sendControlCharacter(ev.keyCode & 0x1F);
           return;
         }
 
-        // Handle Escape key
         if (ev.keyCode === 27) {
-          state.term.prompt(key);
-          state.term.write(key);
+          if (state.term) {
+            state.term.prompt(key);
+            state.term.write(key);
+          } else {
+            sendToServer(key);
+          }
           return;
         }
 
-        // Always use character mode
         handleCharacterMode(key, ev);
       }
 
@@ -342,14 +439,16 @@
        * Handle character input mode
        */
       function handleCharacterMode(key, ev) {
+        const ctrlCode = (letter) => letter.charCodeAt(0) & 0x1F;
+
         const keyMappings = {
-          39: String.fromCharCode(68), // cursor right -> ctrl d
-          37: String.fromCharCode(83), // cursor left -> ctrl s
-          38: String.fromCharCode(69), // cursor up -> ctrl e
-          40: String.fromCharCode(88), // cursor down -> ctrl x
-          45: String.fromCharCode(79), // insert -> ctrl o
-          46: String.fromCharCode(71), // delete -> ctrl g
-          8: String.fromCharCode(72)   // backspace -> ctrl h
+          39: ctrlCode('D'), // cursor right -> ctrl D
+          37: ctrlCode('S'), // cursor left -> ctrl S
+          38: ctrlCode('E'), // cursor up -> ctrl E
+          40: ctrlCode('X'), // cursor down -> ctrl X
+          45: ctrlCode('O'), // insert -> ctrl O
+          46: ctrlCode('G'), // delete -> ctrl G
+          8:  ctrlCode('H')  // backspace -> ctrl H
         };
 
         if (keyMappings[ev.keyCode]) {
@@ -358,45 +457,36 @@
         }
 
         if (ev.keyCode === 13) { // Enter
-          state.term.prompt("\r");
+          if (state.term) {
+            state.term.prompt("\r");
+          } else {
+            sendToServer("\r");
+          }
           state.currentLine = "";
           return;
         }
 
-        // Default character input - send to server only, no local echo
         state.currentLine += key;
-        
-        // Prevent memory leaks from very long lines
         if (state.currentLine.length > CONFIG.MAX_CURRENT_LINE_LENGTH) {
           console.warn("Current line too long, truncating");
           state.currentLine = state.currentLine.slice(-CONFIG.MAX_CURRENT_LINE_LENGTH / 2);
         }
-        
-        // Send character to websocket server only
-        state.term.prompt(key);
-        
-        // Note: No local echo - server will echo back if needed
+
+        if (state.term) {
+          state.term.prompt(key);
+        } else {
+          sendToServer(key);
+        }
       }
 
       /**
        * Send control character with error handling
        */
-      function sendControlCharacter(msg) {
-        if (!state.connected || !state.online || !state.ws) return;
-
-        try {
-          let output;
-          if (msg === 'M') {
-            // Original behavior: Ctrl+M sends ASCII 28 (File Separator)
-            output = String.fromCharCode(28);
-          } else {
-            const ascii = msg.charCodeAt(0);
-            output = String.fromCharCode(ascii & 31);
-          }
-          state.ws.send(output);
-        } catch (error) {
-          console.error("Failed to send control character:", error);
-          showError("Communication error with server");
+      function sendControlCharacter(charCode) {
+        if (typeof charCode === "number") {
+          sendToServer(String.fromCharCode(charCode));
+        } else if (typeof charCode === "string" && charCode.length > 0) {
+          sendToServer(charCode);
         }
       }
 
@@ -449,35 +539,14 @@
 
         try {
           state.ws = new WebSocket(wsUrl);
+          state.ws.binaryType = "arraybuffer";
           setupWebSocketEventHandlers(altairAddress);
         } catch (error) {
           console.error("Failed to create WebSocket:", error);
           showError("Failed to create connection");
           scheduleReconnect();
         }
-      }
-
-
-
-      /**
-       * Flush buffered messages to terminal
-       * Called via requestAnimationFrame for ~60 fps updates
-       */
-      function flushMessageBuffer() {
-        if (state.messageBuffer.length > 0 && state.term) {
-          try {
-            console.log(`Flushing ${state.messageBuffer.length} chars to terminal`);
-            state.term.write(state.messageBuffer);
-            state.messageBuffer = "";
-          } catch (error) {
-            console.error("Error writing buffered data to terminal:", error);
-            state.messageBuffer = ""; // Clear buffer on error to prevent infinite retry
-          }
-        }
-        state.renderScheduled = false;
-      }
-
-      /**
+      }      /**
        * Set up WebSocket event handlers
        */
       function setupWebSocketEventHandlers(altairAddress) {
@@ -494,35 +563,54 @@
         };
 
         state.ws.onmessage = (event) => {
-          if (state.term && event.data) {
-            // Buffer incoming data instead of writing immediately
-            state.messageBuffer += event.data;
-            
-            // Schedule a render if not already queued (~60 fps via requestAnimationFrame)
-            if (!state.renderScheduled) {
-              state.renderScheduled = true;
-              requestAnimationFrame(flushMessageBuffer);
-            }
+          if (!state.term) {
+            return;
+          }
+
+          const data = event.data;
+
+          if (typeof data === "string") {
+            enqueueTerminalOutput(data);
+            return;
+          }
+
+          if (data instanceof ArrayBuffer) {
+            const decoded = decoder.decode(data, {stream: true});
+            enqueueTerminalOutput(decoded);
+            return;
+          }
+
+          if (data instanceof Blob) {
+            void data.arrayBuffer()
+              .then((buffer) => {
+                const decoded = decoder.decode(buffer, {stream: true});
+                enqueueTerminalOutput(decoded);
+              })
+              .catch((error) => console.error("Failed to decode blob payload:", error));
           }
         };
 
         state.ws.onclose = (event) => {
           console.log("WebSocket closed:", event.code, event.reason);
-          
-          // Flush any remaining buffered data before connection closes
-          if (state.messageBuffer.length > 0) {
-            flushMessageBuffer();
-          }
-          
+          const trailing = decoder.decode();
+          enqueueTerminalOutput(trailing);
+          flushPendingTerminalOutput(true);
           state.connected = false;
           state.ws = null;
           showMessage('Connection closed.', true);
+          if (!state.userInitiatedDisconnect) {
+            scheduleReconnect();
+          }
+          state.userInitiatedDisconnect = false;
         };
 
         state.ws.onerror = (error) => {
           console.error("WebSocket error:", error);
           state.connected = false;
           showError("Connection error occurred");
+          if (!state.userInitiatedDisconnect) {
+            scheduleReconnect();
+          }
         };
       }
 
@@ -530,11 +618,6 @@
        * Close WebSocket connection cleanly
        */
       function closeConnection() {
-        // Flush any remaining buffered data before closing
-        if (state.messageBuffer.length > 0) {
-          flushMessageBuffer();
-        }
-        
         if (state.ws) {
           try {
             // Clear event handlers explicitly to prevent memory leaks
@@ -550,10 +633,9 @@
           state.ws = null;
         }
         state.connected = false;
-        
-        // Clear buffer state
-        state.messageBuffer = "";
-        state.renderScheduled = false;
+
+        flushPendingTerminalOutput(true);
+        stopFlushLoop();
       }
 
       /**
@@ -668,12 +750,6 @@
                 // Clear the terminal display but keep connection
                 state.term.clear();
               }
-              
-              // Reset current line if it's getting too long
-              if (state.currentLine.length > CONFIG.MAX_CURRENT_LINE_LENGTH) {
-                console.log("Resetting long current line - length:", state.currentLine.length);
-                state.currentLine = "";
-              }
             } catch (error) {
               console.error("Error during periodic cleanup:", error);
             }
@@ -705,7 +781,13 @@
         // Clean up terminal event handlers
         cleanupTerminalEventHandlers();
         
+        const trailing = decoder.decode();
+        enqueueTerminalOutput(trailing);
+        flushPendingTerminalOutput(true);
+        stopFlushLoop();
+
         // Close WebSocket connection
+        state.userInitiatedDisconnect = true;
         closeConnection();
         
         // Dispose terminal
@@ -734,26 +816,8 @@
           setupReconnectButton();
           setupSendEscButton();
           setupSendCtrlCButton();
-          // Add Monitor button setup
           setupMonitorButton();
           initializeNetworkHandlers();
-      // Add monitor button click handler
-      function setupMonitorButton() {
-        if (!elements.monitorBtn) return;
-        elements.monitorBtn.onclick = function() {
-          if (state.connected && state.ws && state.ws.readyState === WebSocket.OPEN) {
-            try {
-              // Send the same character as Ctrl+M (ASCII 28)
-              sendControlCharacter('M');
-            } catch (error) {
-              showError("Failed to send Monitor (Ctrl+M) to server");
-            }
-          }
-          if (state.term) {
-            state.term.focus();
-          }
-        };
-      }
 
           if (!initializeTerminal()) {
             return false;
@@ -860,7 +924,7 @@
     </div>
   </div>
 
-  <div id="version">3.2.1</div>
+  <div id="version">3.2.2</div>
 
 </body>
 
