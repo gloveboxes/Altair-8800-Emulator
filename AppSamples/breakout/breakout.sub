@@ -2,13 +2,16 @@ gf -f sdk/dxtimer.c
 gf -f sdk/dxtimer.h
 gf -f sdk/dxterm.c
 gf -f sdk/dxterm.h
+gf -f sdk/dxsys.c
+gf -f sdk/dxsys.h
 
 gf -f breakout/breakout.c
 
 cc dxtimer
 cc dxterm
+cc dxsys
 cc breakout
-clink breakout dxterm dxtimer
+clink breakout dxterm dxtimer dxsys
 
 a:pip a:breakout.com=breakout.com
 

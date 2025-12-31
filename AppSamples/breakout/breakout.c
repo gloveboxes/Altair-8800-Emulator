@@ -66,13 +66,13 @@ int paddle_needs_redraw; /* Flag to force paddle redraw after collision */
 int sc_last;   /* Last score written to screen */
 int bn_last;   /* Last bounce count written to screen */
 
-/* Pseudo-random fallback support */
-int rndseed;
-
 /* Timer library functions */
 int x_delay();
 int x_tmrset();
 int x_tmrexp();
+
+/* System SDK functions */
+unsigned x_rand();
 
 /* --- Console I/O --- */
 
@@ -325,94 +325,13 @@ int should_move_ball()
     return (ball_counter >= speed_cycles);
 }
 
-int abs(n)
-int n;
-{
-    return (n < 0) ? -n : n;
-}
-
-int string_to_int(s)
-char *s;
-{
-    int result;
-    int sign;
-
-    result = 0;
-    sign   = 1;
-
-    /* Skip leading spaces */
-    while (*s == ' ')
-        s++;
-
-    /* Check for sign */
-    if (*s == '-')
-    {
-        sign = -1;
-        s++;
-    }
-    else if (*s == '+')
-    {
-        s++;
-    }
-
-    /* Convert digits */
-    while (*s >= '0' && *s <= '9')
-    {
-        result = result * 10 + (*s - '0');
-        s++;
-    }
-
-    return result * sign;
-}
-
-/* Simple pseudo-random generator for systems without hardware RNG */
-int rndfbk()
-{
-    int noise;
-
-    /* Mix in timer state noise when available */
-    noise = inp(29);
-
-    rndseed = rndseed * 1103 + 12345 + noise;
-    if (rndseed < 0)
-        rndseed = -rndseed;
-
-    rndseed = rndseed % 32768;
-    if (rndseed == 0)
-        rndseed = 1;
-
-    return rndseed;
-}
-
 int get_random()
 {
-    char random_str[16];
-    int i;
-    int ch;
-    int result;
+    unsigned r;
 
-    /* Trigger hardware random number generation */
-    outp(44, 1);
-
-    /* Read the random number string from port 200 */
-    i = 0;
-    while (i < 15)
-    { /* Leave room for null terminator */
-        ch = inp(200);
-        if (ch == 0)
-            break; /* Null terminator - end of string */
-        random_str[i] = ch;
-        i++;
-    }
-    random_str[i] = 0; /* Null terminate the string */
-
-    /* Convert string to integer and make it positive */
-    result = string_to_int(random_str);
-    if (result != 0)
-        return abs(result); /* Always return positive number (0-32000) */
-
-    /* Hardware source failed, fall back to pseudo-random sequence */
-    return rndfbk();
+    /* Use SDK/system random only (dxsys.c / x_rand). */
+    r = x_rand();
+    return r & 0x7FFF;
 }
 
 int update_ball_position()
@@ -607,7 +526,6 @@ int main()
 
     g_seq_len       = 0;
     g_last_key_code = 0;
-    rndseed         = 12345;
     sc_last         = -1;
     bn_last         = -1;
 
