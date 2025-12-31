@@ -95,7 +95,6 @@ static void *transfer_thread_func(void *arg)
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 
-    printf("DEBUG: Starting copy_web with URL: %s\n", url);
     copy_web(url);
 
     pthread_mutex_lock(&webget_mutex);

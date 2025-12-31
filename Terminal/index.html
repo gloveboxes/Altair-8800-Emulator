@@ -2,11 +2,290 @@
 <html>
 
 <head>
-  <script src="Javascript/xterm.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
 
-  <link rel="stylesheet" href="css/xterm.css" />
-  <link rel="stylesheet" href="css/modern.css">
+  <style>
+    /* Inlined modern.css */
+    html,
+    input[type=submit],
+    div.find a:active {
+      background-color: #4A90E2;
+      color: #ffffff;
+    }
 
+    a {
+      background-color: #4A90E2;
+      color: #ffffff;
+    }
+
+    a:hover {
+      background-color: #357ABD;
+      color: #ffffff;
+    }
+
+    #docs {
+      background-color: #4A90E2;
+      border-width: thick;
+      border: white;
+      font-family: Courier New;
+      font-size: 20px;
+      padding: 1px 1px;
+    }
+
+    input[type=button] {
+      background-color: black;
+      border-color: #ffffff;
+      border-style: solid;
+      border-width: thin;
+      color: #ffffff;
+      cursor: pointer;
+      font-family: Courier New;
+      font-size: 20px;
+      padding: 1px 4px;
+      margin: 2px;
+    }
+
+    input[type=text] {
+      background-color: black;
+      border-color: blue;
+      border-style: solid;
+      border-width: thin;
+      color: #ffffff;
+      font-family: Courier New;
+      font-size: 20px;
+      padding: 1px 1px;
+      text-decoration: none;
+    }
+
+    body {
+      background-color: #4A90E2;
+      color: #ffffff;
+      font-family: Courier New;
+      font-size: 20px;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    #terminal {
+      width: 100%;
+      max-width: 100%;
+      border: 2px solid #ffffff;
+      box-sizing: border-box;
+      padding: 0;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+
+    /* Inlined xterm.css 5.3.0 to ensure the terminal renders when the page
+       is embedded into firmware without external assets. */
+    .xterm {
+      cursor: text;
+      position: relative;
+      user-select: none;
+      -ms-user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .xterm.focus,
+    .xterm:focus {
+      outline: none;
+    }
+
+    .xterm .xterm-helpers {
+      position: absolute;
+      top: 0;
+      z-index: 5;
+    }
+
+    .xterm .xterm-helper-textarea {
+      padding: 0;
+      border: 0;
+      margin: 0;
+      position: absolute;
+      opacity: 0;
+      left: -9999em;
+      top: 0;
+      width: 0;
+      height: 0;
+      z-index: -5;
+      white-space: nowrap;
+      overflow: hidden;
+      resize: none;
+    }
+
+    .xterm .composition-view {
+      background: #000;
+      color: #FFF;
+      display: none;
+      position: absolute;
+      white-space: nowrap;
+      z-index: 1;
+    }
+
+    .xterm .composition-view.active {
+      display: block;
+    }
+
+    .xterm .xterm-viewport {
+      background-color: #000;
+      overflow-y: scroll;
+      cursor: default;
+      position: absolute;
+      right: 0;
+      left: 0;
+      top: 0;
+      bottom: 0;
+    }
+
+    .xterm .xterm-screen {
+      position: relative;
+    }
+
+    .xterm .xterm-screen canvas {
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+
+    .xterm .xterm-scroll-area {
+      visibility: hidden;
+    }
+
+    .xterm-char-measure-element {
+      display: inline-block;
+      visibility: hidden;
+      position: absolute;
+      top: 0;
+      left: -9999em;
+      line-height: normal;
+    }
+
+    .xterm.enable-mouse-events {
+      cursor: default;
+    }
+
+    .xterm.xterm-cursor-pointer,
+    .xterm .xterm-cursor-pointer {
+      cursor: pointer;
+    }
+
+    .xterm.column-select.focus {
+      cursor: crosshair;
+    }
+
+    .xterm .xterm-accessibility:not(.debug),
+    .xterm .xterm-message {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      z-index: 10;
+      color: transparent;
+      pointer-events: none;
+    }
+
+    .xterm .xterm-accessibility-tree:not(.debug) *::selection {
+      color: transparent;
+    }
+
+    .xterm .xterm-accessibility-tree {
+      user-select: text;
+      white-space: pre;
+    }
+
+    .xterm .live-region {
+      position: absolute;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+
+    .xterm-dim {
+      opacity: 1 !important;
+    }
+
+    .xterm-underline-1 {
+      text-decoration: underline;
+    }
+
+    .xterm-underline-2 {
+      text-decoration: double underline;
+    }
+
+    .xterm-underline-3 {
+      text-decoration: wavy underline;
+    }
+
+    .xterm-underline-4 {
+      text-decoration: dotted underline;
+    }
+
+    .xterm-underline-5 {
+      text-decoration: dashed underline;
+    }
+
+    .xterm-overline {
+      text-decoration: overline;
+    }
+
+    .xterm-overline.xterm-underline-1 {
+      text-decoration: overline underline;
+    }
+
+    .xterm-overline.xterm-underline-2 {
+      text-decoration: overline double underline;
+    }
+
+    .xterm-overline.xterm-underline-3 {
+      text-decoration: overline wavy underline;
+    }
+
+    .xterm-overline.xterm-underline-4 {
+      text-decoration: overline dotted underline;
+    }
+
+    .xterm-overline.xterm-underline-5 {
+      text-decoration: overline dashed underline;
+    }
+
+    .xterm-strikethrough {
+      text-decoration: line-through;
+    }
+
+    .xterm-screen .xterm-decoration-container .xterm-decoration {
+      z-index: 6;
+      position: absolute;
+    }
+
+    .xterm-screen .xterm-decoration-container .xterm-decoration.xterm-decoration-top-layer {
+      z-index: 7;
+    }
+
+    .xterm-decoration-overview-ruler {
+      z-index: 8;
+      position: absolute;
+      top: 0;
+      right: 0;
+      pointer-events: none;
+    }
+
+    .xterm-decoration-top {
+      z-index: 2;
+      position: relative;
+    }
+  </style>
+
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23001f3f'/><rect x='15' y='20' width='70' height='50' rx='3' fill='%23e5b800' stroke='%23000' stroke-width='2'/><rect x='20' y='25' width='60' height='30' fill='%23000'/><circle cx='30' cy='63' r='3' fill='%23000'/><circle cx='45' cy='63' r='3' fill='%23000'/><circle cx='55' cy='63' r='3' fill='%23000'/><circle cx='70' cy='63' r='3' fill='%23000'/><text x='50' y='43' font-family='monospace' font-size='12' fill='%23e5b800' text-anchor='middle'>8800</text></svg>"
+    type="image/svg+xml">
   <script>
     "use strict";
 
@@ -14,7 +293,7 @@
      * Altair Terminal Web Client
      * Improved version with better error handling, code organization, and robustness
      */
-    const AltairTerminal = (function() {
+    const AltairTerminal = (function () {
       // Private state - encapsulated to avoid global pollution
       const state = {
         ws: null,
@@ -27,13 +306,14 @@
         pasteHandler: null,
         keyHandler: null,
         cleanupInterval: null,
+        reconnectTimer: null,
         userInitiatedDisconnect: false,
-        currentLine: "",
-        pendingOutput: "",
-        flushFrameRequest: null
+        inputBuffer: [],
+        inputTimer: null,
+        encoder: new TextEncoder()
       };
 
-      const decoder = new TextDecoder("utf-8", {fatal: false});
+      const decoder = new TextDecoder("utf-8", { fatal: false });
 
       // Configuration constants
       const CONFIG = {
@@ -41,19 +321,13 @@
         XTERM_FONT_SIZE: 18,
         XTERM_ROWS: 30,
         XTERM_COLS: 100,
-        WEBSOCKET_PORT: 8082,
         MAX_PASTE_LENGTH: 256,
         STORAGE_THEME_KEY: 'altair_theme',
         DEFAULT_THEME: 'dark',
         MAX_SCROLLBACK_LINES: 1000,
         BUFFER_CLEANUP_INTERVAL: 300000, // 5 minutes
-        RECONNECT_DELAY: 2000,
-        MAX_CURRENT_LINE_LENGTH: 1024,
-        DISPLAY_MAX_CHUNK_BYTES: 4096
+        RECONNECT_DELAY: 2000
       };
-
-      const requestFrame = (window.requestAnimationFrame || ((cb) => setTimeout(cb, 16))).bind(window);
-      const cancelFrame = (window.cancelAnimationFrame || clearTimeout).bind(window);
 
       // DOM element cache
       const elements = {
@@ -71,20 +345,47 @@
           return;
         }
 
-        if (typeof data === "string" && data.length === 0) {
-          return;
-        }
-
-        if (data instanceof ArrayBuffer && data.byteLength === 0) {
-          return;
-        }
-
         try {
-          state.ws.send(data);
+          // Convert string to Uint8Array if necessary for binary transmission
+          const payload = typeof data === "string" ? state.encoder.encode(data) : data;
+
+          if (payload.byteLength === 0) return;
+
+          state.ws.send(payload);
         } catch (error) {
           console.error("Failed to send data:", error);
           showError("Failed to send data to server");
         }
+      }
+
+      /**
+       * Buffered input to batch rapid keystrokes/pasts into single packets
+       */
+      function queueInput(data) {
+        if (!data) return;
+
+        // Add to buffer
+        if (typeof data === "string") {
+          for (let i = 0; i < data.length; i++) {
+            state.inputBuffer.push(data.charCodeAt(i));
+          }
+        } else if (data instanceof Uint8Array) {
+          data.forEach(b => state.inputBuffer.push(b));
+        }
+
+        // Schedule flush if not already pending
+        if (!state.inputTimer) {
+          state.inputTimer = setTimeout(flushInput, 10); // 10ms batching window
+        }
+      }
+
+      function flushInput() {
+        state.inputTimer = null;
+        if (state.inputBuffer.length === 0) return;
+
+        const data = new Uint8Array(state.inputBuffer);
+        state.inputBuffer = [];
+        sendToServer(data);
       }
 
       function writeToTerminal(text) {
@@ -96,62 +397,6 @@
           state.term.write(text);
         } catch (error) {
           console.error("Error writing payload to terminal:", error);
-        }
-      }
-
-      function enqueueTerminalOutput(text) {
-        if (!text) {
-          return;
-        }
-        state.pendingOutput += text;
-        ensureFlushLoop();
-      }
-
-      function ensureFlushLoop() {
-        if (state.flushFrameRequest !== null) {
-          return;
-        }
-
-        state.flushFrameRequest = requestFrame(() => {
-          state.flushFrameRequest = null;
-          flushPendingTerminalOutput(false);
-        });
-      }
-
-      function stopFlushLoop() {
-        if (state.flushFrameRequest !== null) {
-          cancelFrame(state.flushFrameRequest);
-          state.flushFrameRequest = null;
-        }
-      }
-
-      function flushPendingTerminalOutput(force = false) {
-        if (!state.term) {
-          return;
-        }
-
-        if (!state.pendingOutput) {
-          if (force) {
-            stopFlushLoop();
-          }
-          return;
-        }
-
-        if (force) {
-          writeToTerminal(state.pendingOutput);
-          state.pendingOutput = "";
-          stopFlushLoop();
-          return;
-        }
-
-        const chunk = state.pendingOutput.slice(0, CONFIG.DISPLAY_MAX_CHUNK_BYTES);
-        state.pendingOutput = state.pendingOutput.slice(chunk.length);
-        writeToTerminal(chunk);
-
-        if (state.pendingOutput.length > 0) {
-          ensureFlushLoop();
-        } else {
-          stopFlushLoop();
         }
       }
 
@@ -183,7 +428,7 @@
       // Add sendCtrlC button click handler
       function setupSendCtrlCButton() {
         if (!elements.sendCtrlCBtn) return;
-        elements.sendCtrlCBtn.onclick = function() {
+        elements.sendCtrlCBtn.onclick = function () {
           if (state.connected && state.ws && state.ws.readyState === WebSocket.OPEN) {
             sendControlCharacter(3); // Ctrl+C
           }
@@ -196,7 +441,7 @@
       // Add sendEsc button click handler
       function setupSendEscButton() {
         if (!elements.sendEscBtn) return;
-        elements.sendEscBtn.onclick = function() {
+        elements.sendEscBtn.onclick = function () {
           if (state.connected && state.ws && state.ws.readyState === WebSocket.OPEN) {
             sendControlCharacter(27); // ESC key
           }
@@ -209,9 +454,9 @@
       // Add monitor button click handler
       function setupMonitorButton() {
         if (!elements.monitorBtn) return;
-        elements.monitorBtn.onclick = function() {
+        elements.monitorBtn.onclick = function () {
           if (state.connected && state.ws && state.ws.readyState === WebSocket.OPEN) {
-            sendControlCharacter(13); // Ctrl+M (CR)
+            sendControlCharacter(28); // Ctrl+M (ASCII 28 to toggle CPU monitor)
           }
           if (state.term) {
             state.term.focus();
@@ -252,13 +497,13 @@
           try {
             const url = new URL(state.ws.url);
             hostText = url.hostname;
-          } catch (e) {}
+          } catch (e) { }
         } else {
           // Use the host from getWebSocketUrl()
           try {
             const wsUrl = getWebSocketUrl();
             hostText = wsUrl.split('://')[1].split(':')[0];
-          } catch (e) {}
+          } catch (e) { }
         }
         elements.reconnectBtn.textContent = connected ? `Disconnect from ${hostText}` : `Connect to ${hostText}`;
 
@@ -270,7 +515,7 @@
       // Add reconnect button click handler
       function setupReconnectButton() {
         if (!elements.reconnectBtn) return;
-        elements.reconnectBtn.onclick = function() {
+        elements.reconnectBtn.onclick = function () {
           if (state.connected && state.ws && state.ws.readyState === WebSocket.OPEN) {
             // Disconnect
             state.userInitiatedDisconnect = true;
@@ -278,7 +523,9 @@
             showMessage('Disconnected', true);
             updateReconnectButton();
           } else {
-            // Connect
+            // Connect - reset reconnect attempts for fresh start
+            state.reconnectAttempts = 0;
+            state.userInitiatedDisconnect = false;
             attemptConnection();
           }
         };
@@ -297,9 +544,12 @@
         window.addEventListener('online', () => {
           console.log('Connection restored');
           state.online = true;
-          showMessage('Connection restored');
-          // Attempt to reconnect if we were previously connected
-          if (state.connected && (!state.ws || state.ws.readyState !== WebSocket.OPEN)) {
+          showMessage('Network connection restored');
+          // Attempt to reconnect if not currently connected and not user-disconnected
+          if (!state.connected && !state.userInitiatedDisconnect) {
+            // Reset reconnect attempts when network comes back
+            state.reconnectAttempts = 0;
+            cancelReconnect();
             setTimeout(() => attemptConnection(), 1000);
           }
         });
@@ -317,48 +567,58 @@
 
           // Get initial theme before creating terminal
           const initialTheme = localStorage.getItem(CONFIG.STORAGE_THEME_KEY) || CONFIG.DEFAULT_THEME;
-          const themeColors = initialTheme === "light" 
+          const themeColors = initialTheme === "light"
             ? {
-                background: '#ffffff',
-                foreground: "#000000",
-                cursor: "#000000",
-                selectionBackground: "rgba(188,214,141, 0.4)"
-              }
+              background: '#ffffff',
+              foreground: "#000000",
+              cursor: "#000000",
+              selectionBackground: "rgba(188,214,141, 0.4)"
+            }
             : {
-                background: '#000000',
-                foreground: "#ffffff",
-                cursor: "#ffffff",
-                selectionBackground: "rgba(188,214,141, 0.4)"
-              };
+              background: '#000000',
+              foreground: "#ffffff",
+              cursor: "#ffffff",
+              selectionBackground: "rgba(188,214,141, 0.4)"
+            };
 
           state.term = new Terminal({
             cursorBlink: true,
             fontFamily: CONFIG.XTERM_FONT,
             fontSize: CONFIG.XTERM_FONT_SIZE,
-            rows: CONFIG.XTERM_ROWS,
             cols: CONFIG.XTERM_COLS,
+            rows: CONFIG.XTERM_ROWS,
             theme: themeColors
           });
+
+          // FitAddon removed to enforce fixed terminal dimensions (80 cols x 30 rows)
+          // This prevents the terminal from expanding beyond 30 rows on mobile devices
 
           if (!elements.terminal) {
             throw new Error("Terminal container not found");
           }
 
           state.term.open(elements.terminal);
+
+          // Enforce fixed dimensions after opening
+          state.term.resize(CONFIG.XTERM_COLS, CONFIG.XTERM_ROWS);
+
+          // Handle window resize - maintain fixed dimensions
+          window.addEventListener('resize', () => {
+            if (state.term) {
+              state.term.resize(CONFIG.XTERM_COLS, CONFIG.XTERM_ROWS);
+            }
+          });
           updateThemeButton(initialTheme === "light" ? "Dark" : "Light");
           // state.term.write('WELCOME TO ALTAIR TERMINAL');
 
           // Set up terminal prompt function
           state.term.prompt = (msg) => {
-            sendToServer(msg);
+            queueInput(msg);
           };
 
           state.term.prompt("");
           setupTerminalEventHandlers();
-          
-          // Set focus to terminal after initialization
-          state.term.focus();
-          
+
           return true;
         } catch (error) {
           console.error("Failed to initialize terminal:", error);
@@ -367,33 +627,56 @@
         }
       }
 
-      /**
-       * Set up terminal event handlers with better error handling
-       */
+      function sendControlCharacter(charCode) {
+        queueInput(String.fromCharCode(charCode));
+      }
+
       function setupTerminalEventHandlers() {
         if (!state.term) return;
 
         // Remove existing handlers first to prevent accumulation
         cleanupTerminalEventHandlers();
 
-        // Store handler references for cleanup
+        // onData handles normal typing and pasting
         state.pasteHandler = state.term.onData((data) => {
-          // Character mode only - ignore paste data
-          return;
+          queueInput(data);
         });
 
-        state.keyHandler = state.term.onKey(({key, domEvent}) => {
-          try {
-            handleKeyPress(key, domEvent);
-          } catch (error) {
-            console.error("Error handling key press:", error);
+        // Intercept special keys before xterm processes them
+        state.term.attachCustomKeyEventHandler((ev) => {
+          if (ev.type !== 'keydown') return true;
+
+          // Ctrl-M special handling
+          if (ev.ctrlKey && (ev.key === 'm' || ev.key === 'M')) {
+            sendControlCharacter(28); // ASCII 28 for CPU monitor
+            return false;
           }
+
+          // Special Altair character mappings
+          const ctrlCode = (letter) => letter.charCodeAt(0) & 0x1F;
+          const keyMappings = {
+            39: ctrlCode('D'), // cursor right -> ctrl D
+            37: ctrlCode('S'), // cursor left -> ctrl S
+            38: ctrlCode('E'), // cursor up -> ctrl E
+            40: ctrlCode('X'), // cursor down -> ctrl X
+            45: ctrlCode('O'), // insert -> ctrl O
+            46: ctrlCode('G'), // delete -> ctrl G
+            8: ctrlCode('H')   // backspace -> ctrl H
+          };
+
+          if (keyMappings[ev.keyCode]) {
+            sendControlCharacter(keyMappings[ev.keyCode]);
+            return false; // Stop xterm from sending its own sequence
+          }
+
+          // Let everything else (letters, Enter, ESC) go to onData
+          return true;
         });
+
+        // Set focus to terminal after event handlers are set
+        state.term.focus();
       }
 
-      /**
-       * Clean up terminal event handlers
-       */
       function cleanupTerminalEventHandlers() {
         if (state.pasteHandler) {
           try {
@@ -402,91 +685,21 @@
             console.error("Error removing paste handler:", error);
           }
         }
-        if (state.keyHandler) {
-          try {
-            state.keyHandler.dispose();
-          } catch (error) {
-            console.error("Error removing key handler:", error);
-          }
-        }
         state.pasteHandler = null;
-        state.keyHandler = null;
       }
 
-      /**
-       * Handle key press events with better organization
-       */
-      function handleKeyPress(key, ev) {
-        if (ev.ctrlKey) {
-          sendControlCharacter(ev.keyCode & 0x1F);
-          return;
-        }
-
-        if (ev.keyCode === 27) {
-          if (state.term) {
-            state.term.prompt(key);
-            state.term.write(key);
-          } else {
-            sendToServer(key);
-          }
-          return;
-        }
-
-        handleCharacterMode(key, ev);
-      }
+      // No longer used, logic moved to attachCustomKeyEventHandler
+      /*
+      function handleKeyPress(key, ev) { ... }
+      */
 
       /**
-       * Handle character input mode
+       * Cancel any pending reconnection attempt
        */
-      function handleCharacterMode(key, ev) {
-        const ctrlCode = (letter) => letter.charCodeAt(0) & 0x1F;
-
-        const keyMappings = {
-          39: ctrlCode('D'), // cursor right -> ctrl D
-          37: ctrlCode('S'), // cursor left -> ctrl S
-          38: ctrlCode('E'), // cursor up -> ctrl E
-          40: ctrlCode('X'), // cursor down -> ctrl X
-          45: ctrlCode('O'), // insert -> ctrl O
-          46: ctrlCode('G'), // delete -> ctrl G
-          8:  ctrlCode('H')  // backspace -> ctrl H
-        };
-
-        if (keyMappings[ev.keyCode]) {
-          sendControlCharacter(keyMappings[ev.keyCode]);
-          return;
-        }
-
-        if (ev.keyCode === 13) { // Enter
-          if (state.term) {
-            state.term.prompt("\r");
-          } else {
-            sendToServer("\r");
-          }
-          state.currentLine = "";
-          return;
-        }
-
-        state.currentLine += key;
-        if (state.currentLine.length > CONFIG.MAX_CURRENT_LINE_LENGTH) {
-          console.warn("Current line too long, truncating");
-          state.currentLine = state.currentLine.slice(-CONFIG.MAX_CURRENT_LINE_LENGTH / 2);
-        }
-
-        if (state.term) {
-          state.term.prompt(key);
-        } else {
-          sendToServer(key);
-        }
-      }
-
-      /**
-       * Send control character with error handling
-       */
-      function sendControlCharacter(charCode) {
-        if (typeof charCode === "number") {
-          sendToServer(String.fromCharCode(charCode));
-        } else if (typeof charCode === "string" && charCode.length > 0) {
-          sendToServer(charCode);
+      function cancelReconnect() {
+        if (state.reconnectTimer) {
+          clearTimeout(state.reconnectTimer);
+          state.reconnectTimer = null;
         }
       }
 
@@ -497,16 +710,19 @@
         try {
           const urlParams = new URLSearchParams(window.location.search);
           const hostAddress = urlParams.get('altair');
-          
+
           // Validate and sanitize host address
-          const altairAddress = hostAddress 
+          const altairAddress = hostAddress
             ? sanitizeHostAddress(hostAddress)
             : window.location.hostname || 'localhost';
 
-          return `ws://${altairAddress}:${CONFIG.WEBSOCKET_PORT}`;
+          // Fixed WebSocket port for Altair service
+          const port = '8082';
+
+          return `ws://${altairAddress}:${port}`;
         } catch (error) {
           console.error("Failed to construct WebSocket URL:", error);
-          return `ws://localhost:${CONFIG.WEBSOCKET_PORT}`;
+          return 'ws://localhost:8082';
         }
       }
 
@@ -528,13 +744,20 @@
        * Attempt WebSocket connection with retry logic
        */
       function attemptConnection() {
-        if (state.connected) {
+        // Cancel any pending reconnection attempts
+        cancelReconnect();
+
+        // Close existing connection if any
+        if (state.ws) {
           closeConnection();
         }
 
+        // Clear the user disconnect flag when manually connecting
+        state.userInitiatedDisconnect = false;
+
         const wsUrl = getWebSocketUrl();
         const altairAddress = wsUrl.split('://')[1].split(':')[0];
-        
+
         showMessage(`Connecting to ${altairAddress}...`);
 
         try {
@@ -544,6 +767,7 @@
         } catch (error) {
           console.error("Failed to create WebSocket:", error);
           showError("Failed to create connection");
+          state.connected = false;
           scheduleReconnect();
         }
       }      /**
@@ -555,7 +779,13 @@
         state.ws.onopen = () => {
           console.log("WebSocket connected");
           state.connected = true;
-          state.reconnectAttempts = 0;
+          // Only reset reconnect attempts after successful connection
+          // This prevents rapid reconnection loops
+          setTimeout(() => {
+            if (state.connected && state.ws && state.ws.readyState === WebSocket.OPEN) {
+              state.reconnectAttempts = 0;
+            }
+          }, 5000);
           showMessage(altairAddress);
           if (state.term) {
             state.term.focus();
@@ -570,21 +800,21 @@
           const data = event.data;
 
           if (typeof data === "string") {
-            enqueueTerminalOutput(data);
+            writeToTerminal(data);
             return;
           }
 
           if (data instanceof ArrayBuffer) {
-            const decoded = decoder.decode(data, {stream: true});
-            enqueueTerminalOutput(decoded);
+            const decoded = decoder.decode(data, { stream: true });
+            writeToTerminal(decoded);
             return;
           }
 
           if (data instanceof Blob) {
             void data.arrayBuffer()
               .then((buffer) => {
-                const decoded = decoder.decode(buffer, {stream: true});
-                enqueueTerminalOutput(decoded);
+                const decoded = decoder.decode(buffer, { stream: true });
+                writeToTerminal(decoded);
               })
               .catch((error) => console.error("Failed to decode blob payload:", error));
           }
@@ -593,24 +823,28 @@
         state.ws.onclose = (event) => {
           console.log("WebSocket closed:", event.code, event.reason);
           const trailing = decoder.decode();
-          enqueueTerminalOutput(trailing);
-          flushPendingTerminalOutput(true);
+          writeToTerminal(trailing);
+
+          // Synchronize state
           state.connected = false;
           state.ws = null;
-          showMessage('Connection closed.', true);
+
+          // Only show message and attempt reconnect if not user initiated
           if (!state.userInitiatedDisconnect) {
+            showMessage('Connection closed. Reconnecting...', true);
             scheduleReconnect();
+          } else {
+            showMessage('Disconnected.', true);
+            // Reset flag after handling disconnect
+            state.userInitiatedDisconnect = false;
           }
-          state.userInitiatedDisconnect = false;
         };
 
         state.ws.onerror = (error) => {
           console.error("WebSocket error:", error);
           state.connected = false;
-          showError("Connection error occurred");
-          if (!state.userInitiatedDisconnect) {
-            scheduleReconnect();
-          }
+          // Don't call scheduleReconnect here - onclose will handle it
+          // This prevents double reconnection attempts
         };
       }
 
@@ -618,6 +852,9 @@
        * Close WebSocket connection cleanly
        */
       function closeConnection() {
+        // Cancel any pending reconnection attempts
+        cancelReconnect();
+
         if (state.ws) {
           try {
             // Clear event handlers explicitly to prevent memory leaks
@@ -625,37 +862,49 @@
             state.ws.onmessage = null;
             state.ws.onclose = null;
             state.ws.onerror = null;
-            
-            state.ws.close(1000, "Client disconnect");
+
+            // Only close if not already closed/closing
+            if (state.ws.readyState === WebSocket.OPEN || state.ws.readyState === WebSocket.CONNECTING) {
+              state.ws.close(1000, "Client disconnect");
+            }
           } catch (error) {
             console.error("Error closing WebSocket:", error);
           }
           state.ws = null;
         }
         state.connected = false;
-
-        flushPendingTerminalOutput(true);
-        stopFlushLoop();
       }
 
       /**
        * Schedule reconnection attempt
        */
       function scheduleReconnect() {
-        if (state.reconnectAttempts < CONFIG.MAX_RECONNECT_ATTEMPTS && state.online) {
-          state.reconnectAttempts++;
-          const delay = CONFIG.RECONNECT_DELAY * Math.pow(2, state.reconnectAttempts - 1);
-          
-          showMessage(`Reconnecting in ${delay/1000}s... (${state.reconnectAttempts}/${CONFIG.MAX_RECONNECT_ATTEMPTS})`);
-          
-          setTimeout(() => {
-            if (!state.connected && state.online) {
-              attemptConnection();
-            }
-          }, delay);
-        } else {
-          showMessage('Max reconnection attempts reached. Refresh to try again.', true);
+        // Don't schedule if already scheduled or if max attempts reached
+        if (state.reconnectTimer) {
+          return;
         }
+
+        if (state.reconnectAttempts >= CONFIG.MAX_RECONNECT_ATTEMPTS) {
+          showMessage('Max reconnection attempts reached. Click Connect to retry.', true);
+          return;
+        }
+
+        if (!state.online) {
+          showMessage('No network connection.', true);
+          return;
+        }
+
+        state.reconnectAttempts++;
+        const delay = CONFIG.RECONNECT_DELAY * Math.pow(2, state.reconnectAttempts - 1);
+
+        showMessage(`Reconnecting in ${delay / 1000}s... (${state.reconnectAttempts}/${CONFIG.MAX_RECONNECT_ATTEMPTS})`);
+
+        state.reconnectTimer = setTimeout(() => {
+          state.reconnectTimer = null;
+          if (!state.connected && state.online && !state.userInitiatedDisconnect) {
+            attemptConnection();
+          }
+        }, delay);
       }
 
       /**
@@ -665,11 +914,11 @@
         try {
           localStorage.setItem(CONFIG.STORAGE_THEME_KEY, "dark");
           if (state.term && state.term.options) {
-            state.term.options.theme = { 
-              background: '#000000', 
-              foreground: "#ffffff", 
-              cursor: "#ffffff", 
-              selectionBackground: "rgba(188,214,141, 0.4)" 
+            state.term.options.theme = {
+              background: '#000000',
+              foreground: "#ffffff",
+              cursor: "#ffffff",
+              selectionBackground: "rgba(188,214,141, 0.4)"
             };
           }
           updateThemeButton("Light");
@@ -685,11 +934,11 @@
         try {
           localStorage.setItem(CONFIG.STORAGE_THEME_KEY, "light");
           if (state.term && state.term.options) {
-            state.term.options.theme = { 
-              background: '#ffffff', 
-              foreground: "#000000", 
-              cursor: "#000000", 
-              selectionBackground: "rgba(188,214,141, 0.4)" 
+            state.term.options.theme = {
+              background: '#ffffff',
+              foreground: "#000000",
+              cursor: "#000000",
+              selectionBackground: "rgba(188,214,141, 0.4)"
             };
           }
           updateThemeButton("Dark");
@@ -713,13 +962,13 @@
       function toggleTheme() {
         try {
           const currentTheme = localStorage.getItem(CONFIG.STORAGE_THEME_KEY) || CONFIG.DEFAULT_THEME;
-          
+
           if (currentTheme === "light") {
             setDarkTheme();
           } else {
             setLightTheme();
           }
-          
+
           if (state.term) {
             state.term.focus();
           }
@@ -736,13 +985,13 @@
         if (state.cleanupInterval) {
           clearInterval(state.cleanupInterval);
         }
-        
+
         state.cleanupInterval = setInterval(() => {
           if (state.term && state.connected) {
             try {
               // Log memory usage for monitoring
               logMemoryUsage();
-              
+
               // Clear excess scrollback buffer
               const buffer = state.term.buffer;
               if (buffer && buffer.lines && buffer.lines.length > CONFIG.MAX_SCROLLBACK_LINES) {
@@ -777,19 +1026,20 @@
           clearInterval(state.cleanupInterval);
           state.cleanupInterval = null;
         }
-        
+
+        // Cancel any pending reconnection
+        cancelReconnect();
+
         // Clean up terminal event handlers
         cleanupTerminalEventHandlers();
-        
+
         const trailing = decoder.decode();
-        enqueueTerminalOutput(trailing);
-        flushPendingTerminalOutput(true);
-        stopFlushLoop();
+        writeToTerminal(trailing);
 
         // Close WebSocket connection
         state.userInitiatedDisconnect = true;
         closeConnection();
-        
+
         // Dispose terminal
         if (state.term) {
           try {
@@ -866,49 +1116,53 @@
 <body onload="initTerminal();">
 
 
-  <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 12px 8px; padding-bottom: 8px;">
-  <!-- Status text removed as host is now shown in the button -->
+  <div
+    style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px 8px; padding-bottom: 8px; width: 100%;">
+    <!-- Status text removed as host is now shown in the button -->
     <style>
       .altair-btn {
         margin-left: 8px;
         padding: 2px 14px;
         border-radius: 2px;
-        border: 2px solid #e5b800;
-        background: #002f00;
-        color: #e5b800;
+        border: 2px solid #ffffff;
+        background: #357ABD;
+        color: #ffffff;
         font-size: 1.1rem;
         line-height: 1.2;
         vertical-align: middle;
         cursor: pointer;
         font-family: GlassTTYVT220, Courier New, Courier, monospace;
         font-weight: 500;
-        box-shadow: 0 0 8px #093b09, 0 0 2px #e5b800 inset;
+        box-shadow: 0 0 8px rgba(0, 0, 0, 0.3), 0 0 2px #ffffff inset;
         letter-spacing: 1px;
         text-shadow: none;
       }
+
       .altair-btn:disabled {
         opacity: 0.5;
         cursor: not-allowed;
       }
+
       .altair-btn:hover:not(:disabled) {
-        background: #093b09;
-        color: #fffbe6;
-        box-shadow: 0 0 12px #e5b800, 0 0 2px #e5b800 inset;
+        background: #2A5F8F;
+        color: #ffffff;
+        box-shadow: 0 0 12px rgba(255, 255, 255, 0.5), 0 0 2px #ffffff inset;
       }
+
       #version {
         font-family: Courier New, Courier, monospace;
-        color: #e5b800;
+        color: #ffffff;
         font-size: 1rem;
         opacity: 0.7;
         margin-top: 8px;
         text-shadow: none;
       }
     </style>
-  <button id="reconnectBtn" class="altair-btn" disabled>Connected</button>
-  <button id="sendEscBtn" class="altair-btn">Esc</button>
-  <button id="sendCtrlCBtn" class="altair-btn">Ctrl+C</button>
-  <button id="monitorBtn" class="altair-btn">CPU Monitor</button>
-  <button id="toggleTheme" class="altair-btn" onclick="toggleTheme()">Dark</button>
+    <button id="reconnectBtn" class="altair-btn" disabled>Connected</button>
+    <button id="sendEscBtn" class="altair-btn">Esc</button>
+    <button id="sendCtrlCBtn" class="altair-btn">Ctrl+C</button>
+    <button id="monitorBtn" class="altair-btn">CPU Monitor</button>
+    <button id="toggleTheme" class="altair-btn" onclick="toggleTheme()">Dark</button>
   </div>
 
 
@@ -916,7 +1170,7 @@
 
   <div id="terminal"></div>
 
-  <div style="display: flex; align-items: center; gap: 8px; margin-top: 12px;">
+  <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 12px; width: 100%;">
     <div id="docs" style="display: flex; gap: 8px; align-items: center;">
       <a href="https://github.com/AzureSphereCloudEnabledAltair8800/RetroGames" target="_blank">Games</a>
       <a href="https://gloveboxes.github.io/Altair-8800-Emulator/" target="_blank">Documentation</a>
@@ -924,7 +1178,7 @@
     </div>
   </div>
 
-  <div id="version">3.2.2</div>
+  <div id="version">3.2.3</div>
 
 </body>
 

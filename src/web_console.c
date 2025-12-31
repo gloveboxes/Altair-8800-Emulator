@@ -20,8 +20,9 @@ extern intel8080_t cpu;
 // Constants and Configuration
 // =============================================================================
 
-#define TERMINAL_INPUT_BUFFER_SIZE 128
-#define COMMAND_BUFFER_SIZE        30
+#define TERMINAL_INPUT_BUFFER_SIZE  128
+#define TERMINAL_OUTPUT_BUFFER_SIZE 512
+#define COMMAND_BUFFER_SIZE         30
 
 // =============================================================================
 // Type Definitions
@@ -37,12 +38,31 @@ typedef struct
     pthread_mutex_t mutex;
 } terminal_input_queue_t;
 
+// Terminal output buffer structure (circular buffer)
+typedef struct
+{
+    uint8_t buffer[TERMINAL_OUTPUT_BUFFER_SIZE];
+    size_t head;
+    size_t tail;
+    size_t count;
+    pthread_mutex_t mutex;
+} terminal_output_buffer_t;
+
 // =============================================================================
 // Static Variables
 // =============================================================================
 
 // Terminal input queue (for CPU_RUNNING mode)
 static terminal_input_queue_t terminal_input_queue = {
+    .buffer = {0},
+    .head   = 0,
+    .tail   = 0,
+    .count  = 0,
+    .mutex  = PTHREAD_MUTEX_INITIALIZER,
+};
+
+// Terminal output buffer (circular buffer for websocket output)
+static terminal_output_buffer_t terminal_output_buffer = {
     .buffer = {0},
     .head   = 0,
     .tail   = 0,
@@ -69,6 +89,7 @@ static const int session_minutes = 1 * 60 * 30; // 30 minutes
 static DX_DECLARE_TIMER_HANDLER(expire_session_handler);
 static inline size_t terminal_queue_capacity(void);
 static void handle_websocket_error(ws_cli_conn_t client, const char *error_msg);
+static void flush_terminal_output_buffer(void);
 
 // =============================================================================
 // Timer Bindings
@@ -77,6 +98,12 @@ static void handle_websocket_error(ws_cli_conn_t client, const char *error_msg);
 static DX_TIMER_BINDING tmr_expire_session = {
     .name    = "tmr_expire_session",
     .handler = expire_session_handler,
+};
+
+static DX_TIMER_BINDING tmr_terminal_output_flush = {
+    .repeat  = &(struct timespec){0, 20000000}, // 20ms
+    .name    = "tmr_terminal_output_flush",
+    .handler = terminal_output_flush_handler,
 };
 
 // =============================================================================
@@ -137,6 +164,119 @@ DX_ASYNC_HANDLER(async_expire_session_handler, handle)
 DX_ASYNC_HANDLER_END
 
 // =============================================================================
+// Terminal Output Buffer Functions
+// =============================================================================
+
+/// <summary>
+/// Initialize the terminal output buffer
+/// </summary>
+void init_terminal_output_buffer(void)
+{
+    pthread_mutex_lock(&terminal_output_buffer.mutex);
+    terminal_output_buffer.head  = 0;
+    terminal_output_buffer.tail  = 0;
+    terminal_output_buffer.count = 0;
+    pthread_mutex_unlock(&terminal_output_buffer.mutex);
+}
+
+/// <summary>
+/// Enqueue data into the terminal output buffer (producer - called from terminal write thread)
+/// </summary>
+/// <param name="data">Data to enqueue</param>
+/// <param name="length">Length of data</param>
+/// <returns>Number of bytes enqueued</returns>
+static inline size_t enqueue_terminal_output(const uint8_t *data, size_t length)
+{
+    if (data == NULL || length == 0)
+    {
+        return 0;
+    }
+
+    pthread_mutex_lock(&terminal_output_buffer.mutex);
+
+    size_t available_space = TERMINAL_OUTPUT_BUFFER_SIZE - terminal_output_buffer.count;
+    size_t to_enqueue      = (length <= available_space) ? length : available_space;
+
+    // Enqueue the data
+    for (size_t i = 0; i < to_enqueue; i++)
+    {
+        terminal_output_buffer.buffer[terminal_output_buffer.tail] = data[i];
+        terminal_output_buffer.tail                                = (terminal_output_buffer.tail + 1) % TERMINAL_OUTPUT_BUFFER_SIZE;
+    }
+    terminal_output_buffer.count += to_enqueue;
+
+    // Check if buffer is full - if so, flush immediately
+    bool should_flush = (terminal_output_buffer.count >= TERMINAL_OUTPUT_BUFFER_SIZE);
+
+    pthread_mutex_unlock(&terminal_output_buffer.mutex);
+
+    if (should_flush)
+    {
+        flush_terminal_output_buffer();
+    }
+
+    return to_enqueue;
+}
+
+/// <summary>
+/// Flush the terminal output buffer to websocket client (consumer - called from timer thread)
+/// </summary>
+static void flush_terminal_output_buffer(void)
+{
+    // Check if there's a connected client
+    ws_cli_conn_t client = (ws_cli_conn_t)atomic_load(&current_client);
+    if (client == 0)
+    {
+        return;
+    }
+
+    pthread_mutex_lock(&terminal_output_buffer.mutex);
+
+    // Check if there's data to send
+    if (terminal_output_buffer.count == 0)
+    {
+        pthread_mutex_unlock(&terminal_output_buffer.mutex);
+        return;
+    }
+
+    // Copy data to a temporary buffer for sending
+    uint8_t temp_buffer[TERMINAL_OUTPUT_BUFFER_SIZE];
+    size_t bytes_to_send = terminal_output_buffer.count;
+
+    for (size_t i = 0; i < bytes_to_send; i++)
+    {
+        temp_buffer[i]              = terminal_output_buffer.buffer[terminal_output_buffer.head];
+        terminal_output_buffer.head = (terminal_output_buffer.head + 1) % TERMINAL_OUTPUT_BUFFER_SIZE;
+    }
+
+    terminal_output_buffer.count -= bytes_to_send;
+
+    // Reset head and tail if buffer is now empty
+    if (terminal_output_buffer.count == 0)
+    {
+        terminal_output_buffer.head = 0;
+        terminal_output_buffer.tail = 0;
+    }
+
+    pthread_mutex_unlock(&terminal_output_buffer.mutex);
+
+    // Send the data outside of the lock
+    if (ws_sendframe(client, temp_buffer, bytes_to_send, WS_FR_OP_BIN) == -1)
+    {
+        handle_websocket_error(client, "ws_sendframe failed - connection may be broken");
+    }
+}
+
+/// <summary>
+/// Timer handler for flushing terminal output buffer
+/// </summary>
+DX_TIMER_HANDLER(terminal_output_flush_handler)
+{
+    flush_terminal_output_buffer();
+}
+DX_TIMER_HANDLER_END
+
+// =============================================================================
 // Output Functions
 // =============================================================================
 
@@ -153,17 +293,15 @@ void publish_message(const void *message, size_t message_length)
         return;
     }
 
+    // Check if there's a connected client
     ws_cli_conn_t client = (ws_cli_conn_t)atomic_load(&current_client);
     if (client == 0)
     {
         return;
     }
 
-    // Send message as binary data to avoid encoding issues
-    if (ws_sendframe(client, message, message_length, WS_FR_OP_BIN) == -1)
-    {
-        handle_websocket_error(client, "ws_sendframe failed - connection may be broken");
-    }
+    // Enqueue the message into the circular buffer
+    enqueue_terminal_output((const uint8_t *)message, message_length);
 }
 
 // =============================================================================
@@ -479,8 +617,12 @@ void init_web_socket_server(void (*client_connected_cb)(void), void (*client_dis
     _client_connected_cb = client_connected_cb;
     _client_disconnected_cb = client_disconnected_cb;
 
+    // Initialize the terminal output buffer
+    init_terminal_output_buffer();
+
     // Start timers
     dx_timerStart(&tmr_expire_session);
+    dx_timerStart(&tmr_terminal_output_flush);
 
     struct ws_server ws_srv = {.host = NULL, // NULL means bind to all interfaces
         .port                        = 8082,
