@@ -1,7 +1,7 @@
 /* Copyright (c) Microsoft Corporation. All rights reserved.
    Licensed under the MIT License. */
 
-#include "file_io.h"
+#include "http_io.h"
 #include "dx_utilities.h"
 #include <curl/curl.h>
 #include <errno.h>
