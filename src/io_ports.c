@@ -60,9 +60,7 @@ void io_port_out(uint8_t port, uint8_t data)
             break;
 
         // Onboard IO Ports
-        case 60: // Red LEB
-        case 61: // Green LEB
-        case 62: // Blue LEB
+        case 62: // Onboard RGB LED
         case 63: // Load Onboard sensors temperature, pressure, and light
         case 64: // Load accelerometer data and settings
             ru.len = onboard_output(port, data, ru.buffer, sizeof(ru.buffer));

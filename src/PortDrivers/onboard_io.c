@@ -103,14 +103,21 @@ size_t onboard_output(int port, uint8_t data, char *buffer, size_t buffer_length
     {
 
 #ifdef AZURE_SPHERE
-        case 60: // Red LEB
-            dx_gpioStateSet(&gpioRed, (bool)data);
-            break;
-        case 61: // Green LEB
-            dx_gpioStateSet(&gpioGreen, (bool)data);
-            break;
-        case 62: // Blue LEB
-            dx_gpioStateSet(&gpioBlue, (bool)data);
+        case 62: // Onboard RGB LED
+            switch (data)
+            {
+                case 0: // Red LED
+                    dx_gpioStateSet(&gpioRed, (bool)data);
+                    break;
+                case 1: // Green LED
+                    dx_gpioStateSet(&gpioGreen, (bool)data);
+                    break;
+                case 2: // Blue LED
+                    dx_gpioStateSet(&gpioBlue, (bool)data);
+                    break;
+                default:
+                    break;
+            }
             break;
         case 63: // Onboard sensors temperature, pressure, and light
             switch (data)
