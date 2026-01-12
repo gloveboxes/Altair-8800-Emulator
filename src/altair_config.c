@@ -195,6 +195,16 @@ bool parse_altair_cmd_line_arguments(int argc, char *argv[], ALTAIR_CONFIG_T *al
 		altair_config->front_panel_selection = parse_front_panel_selection(front_panel_env, altair_config->front_panel_selection);
 	}
 
+	// Check for RemoteFtServerIp environment variable if not set via command line
+	if (altair_config->remote_ft_server_ip == NULL)
+	{
+		const char *remote_ft_env = getenv("RemoteFtServerIp");
+		if (remote_ft_env != NULL && remote_ft_env[0] != '\0')
+		{
+			altair_config->remote_ft_server_ip = (char *)remote_ft_env;
+		}
+	}
+
 	switch (altair_config->user_config.connectionType)
 	{
 		case DX_CONNECTION_TYPE_NOT_DEFINED:
