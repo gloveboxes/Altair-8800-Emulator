@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  altair-rfs:
+    build:
+      context: ..
+      dockerfile: RemoteFS/Dockerfile
+    container_name: altair-rfs
+    restart: unless-stopped
+    ports:
+      - "8085:8085"
+      - "8086:80"
+    volumes:
+      # Persistent storage for client data (read/write)
+      - ./clients:/app/clients
+      # Web root for Apps download
+      - ../Apps:/usr/share/nginx/html:ro
+    command: /app/entrypoint.sh
+    # logging:
+    #   driver: "json-file"
+    #   options:
+    #     max-size: "10m"
+    #     max-file: "3"
+
+  altair-rft:
+    build:
+      context: ..
+      dockerfile: RemoteFS/Dockerfile
+    container_name: altair-rft
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    volumes:
+      # File transfer root (Apps folder)
+      - ../Apps:/app/files:ro
+    command: python3 -u remote_ft_server.py --host 0.0.0.0 --port 8090 --files-dir /app/files

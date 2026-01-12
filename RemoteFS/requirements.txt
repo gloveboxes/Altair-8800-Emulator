@@ -1,0 +1,2 @@
+# Remote FS Server Dependencies
+# No external dependencies - uses Python standard library only
