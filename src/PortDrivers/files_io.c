@@ -111,8 +111,6 @@ size_t files_io_output(int port, uint8_t data, char *buffer, size_t buffer_lengt
             // Null terminator - send filename to server
             ft_state.filename[ft_state.filename_idx] = '\0';
             
-            printf("[FT] SET_FILENAME: %s\n", ft_state.filename);
-            
             // Reset state for new file
             ft_state.chunk_len = 0;
             ft_state.chunk_position = 0;
@@ -167,8 +165,6 @@ size_t files_io_output(int port, uint8_t data, char *buffer, size_t buffer_lengt
                 break;
             }
             
-            printf("[FT] GET_CHUNK\n");
-            
             // Reset chunk buffer
             ft_state.chunk_len = 0;
             ft_state.chunk_position = 0;
@@ -182,7 +178,6 @@ size_t files_io_output(int port, uint8_t data, char *buffer, size_t buffer_lengt
             break;
             
         case FT_CMD_CLOSE:
-            printf("[FT] CLOSE\n");
             send_close();
             ft_state.status = FT_STATUS_IDLE;
             break;
@@ -309,7 +304,6 @@ static int send_set_filename(const char *filename)
         return -1;
     }
     
-    printf("[FT] Filename accepted\n");
     return 0;
 }
 
@@ -380,9 +374,6 @@ static int send_get_chunk(void)
     ft_state.chunk_len = chunk_size + 1; // +1 for count byte
     ft_state.chunk_position = 0;
     ft_state.status = (status == FT_PROTO_RESP_EOF) ? FT_STATUS_EOF : FT_STATUS_DATA_READY;
-    
-    printf("[FT] Received chunk: %zu bytes, status=%s\n", 
-           chunk_size, (status == FT_PROTO_RESP_EOF) ? "EOF" : "OK");
     
     return 0;
 }
