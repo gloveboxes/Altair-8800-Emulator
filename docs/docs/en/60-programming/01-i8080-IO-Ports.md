@@ -35,6 +35,10 @@ The following tables show output port numbers and port data values. Typically, c
 | 42   | 0     | Current [UTC](https://en.wikipedia.org/wiki/Coordinated_Universal_Time){:target=_blank} date and time |
 | 43   | 0     | Current local date and time |
 | 44   | 0     | Generates a random number between -32000 and 32000 |
+| 60   | 1     | Remote File Transfer (FT) command port - SET_FILENAME (1) |
+| 60   | 3     | Remote File Transfer (FT) command port - REQUEST_CHUNK (3) |
+| 60   | 4     | Remote File Transfer (FT) command port - CLOSE (4) |
+| 61   | ASCII | Remote File Transfer (FT) data port - filename characters (null-terminated) |
 | 109  | 0     | set getfile (gf) custom endpoint url index to 0. Should be called before setting the custom endpoint url. |
 | 110   | ASCII | Set getfile (gf) custom endpoint url |
 | 111   | 0 | Load getfile (gf) custom endpoint url |
@@ -55,6 +59,8 @@ Typically, input ports will read data loaded by an output port.
 | 30   | Query seconds timer status. Enabled or expired (true or false) |
 | 31   | Query publish JSON pending status. Enabled or expired (true or false) |
 | 32   | Query publish weather pending status. Enabled or expired (true or false) |
+| 60   | Remote File Transfer (FT) status port - IDLE(0), DATA_READY(1), EOF(2), BUSY(3), ERROR(255) |
+| 61   | Remote File Transfer (FT) data port - read count byte or file data |
 | 69  | Is network ready |
 | 200  | Read loaded byte stream |
 | 201  | Read webget file stream |
@@ -176,9 +182,9 @@ Typically, input ports will read data loaded by an output port.
 
 | Port | Port data  | Loads |
 |------|-------|:---------|
-| 60   | 1 or 0 | Turn Red LED on or off |
-| 61   | 1 or 0 | Turn Green LED on or off |
-| 62   | 1 or 0 | Turn Blue LED on or off |
+| 62   | 0      | Select Red LED |
+| 62   | 1      | Select Green LED |
+| 62   | 2      | Select Blue LED |
 | 63   | 0      | Loads onboard temperature |
 | 63   | 1      | Loads onboard pressure |
 | 63   | 2      | Loads onboard light sensor |
@@ -285,19 +291,17 @@ The following example shows how to use the Intel 8080 IO ports to display charac
 
 #### Azure Sphere Blinky
 
-The following example shows how to use the Intel 8080 IO ports to blink LEDs on an Azure Sphere. To understand how IO ports are implemented, refer to the [io_ports.c](https://github.com/gloveboxes/Altair8800.Emulator.UN-X/blob/main/src/io_ports.c){:target=_blank} source code.
+The following example shows how to use the Intel 8080 IO ports to cycle through RGB LEDs on an Azure Sphere. To understand how IO ports are implemented, refer to the [io_ports.c](https://github.com/gloveboxes/Altair8800.Emulator.UN-X/blob/main/src/io_ports.c){:target=_blank} source code.
 
 ```basic
 5 OUT 80, 1 : REM switch display to font mode
 10 WHILE 1=1 : REM Loop forever
-20 OUT 60, 1 : REM switch on the red LED
+20 OUT 62, 0 : REM select red LED
 30 OUT 29, 250 : WAIT 29, 1, 1 : REM delay 250 milliseconds
-40 OUT 61, 1 : REM switch on the green LED
+40 OUT 62, 1 : REM select green LED
 50 OUT 29, 250 : WAIT 29, 1, 1 : REM delay 250 milliseconds
-60 OUT 62, 1 : REM switch on the blue LED
+60 OUT 62, 2 : REM select blue LED
 70 OUT 29, 250 : WAIT 29, 1, 1 : REM delay 250 milliseconds
-80 OUT 60, 0 : OUT 61, 0 : OUT 62, 0 : REM Turn off all LEDs
-85 OUT 29, 250 : WAIT 29, 1, 1 : REM delay 250 milliseconds
-90 WEND
-100 OUT 80, 0 : REM switch display to bus mode
+80 WEND
+90 OUT 80, 0 : REM switch display to bus mode
 ```
