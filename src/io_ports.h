@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "PortDrivers/files_io.h"
 #include "PortDrivers/http_io.h"
 #include "PortDrivers/led_matrix_io.h"
 #include "PortDrivers/onboard_io.h"

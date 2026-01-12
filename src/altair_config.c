@@ -35,6 +35,8 @@ static const char *cmdLineArgsUsageText =
 	"  -e, --OpenAIEndpoint <url>     OpenAI-compatible API endpoint\n"
 	"                                 (default: https://api.openai.com/v1/chat/completions)\n"
 	"                                 Use http://localhost:1234/v1/chat/completions for LM Studio\n"
+	"  -r, --RemoteFtServerIp <ip>    Remote File Transfer server IP (default: none)\n"
+	"                                 (port 8090 is used)\n"
 	"\n"
 	"Help:\n"
 	"  -h, --help                     Show this help message\n"
@@ -96,6 +98,7 @@ bool parse_altair_cmd_line_arguments(int argc, char *argv[], ALTAIR_CONFIG_T *al
 		{.name = "OpenWeatherMapKey", .has_arg = required_argument, .flag = NULL, .val = 'o'},
 		{.name = "OpenAIKey", .has_arg = required_argument, .flag = NULL, .val = 'a'},
 		{.name = "OpenAIEndpoint", .has_arg = required_argument, .flag = NULL, .val = 'e'},
+		{.name = "RemoteFtServerIp", .has_arg = required_argument, .flag = NULL, .val = 'r'},
 		{.name = "help", .has_arg = no_argument, .flag = NULL, .val = 'h'}};
 
 	altair_config->user_config.connectionType = DX_CONNECTION_TYPE_MQTT;
@@ -107,6 +110,7 @@ bool parse_altair_cmd_line_arguments(int argc, char *argv[], ALTAIR_CONFIG_T *al
 	altair_config->user_config.mqtt_password = NULL;
 	altair_config->front_panel_selection      = FRONT_PANEL_SELECTION_NONE;
 	altair_config->openai_endpoint = "https://api.openai.com/v1/chat/completions";
+	altair_config->remote_ft_server_ip = NULL;
 	
 	// Default behavior: Slow CPU on disconnect (can be overridden with command line option)
 	altair_config->slow_cpu_on_disconnect = true;
@@ -120,7 +124,7 @@ bool parse_altair_cmd_line_arguments(int argc, char *argv[], ALTAIR_CONFIG_T *al
 	// Loop over all of the options.
 	bool front_panel_option_set = false;
 
-	while ((option = getopt_long(argc, argv, "m:p:c:U:P:n:f:s:o:a:e:h", cmdLineOptions, NULL)) != -1)
+	while ((option = getopt_long(argc, argv, "m:p:c:U:P:n:f:s:o:a:e:r:h", cmdLineOptions, NULL)) != -1)
 	{
 		// Check if arguments are missing. Every option requires an argument.
 		if (optarg != NULL && optarg[0] == '-')
@@ -171,6 +175,9 @@ bool parse_altair_cmd_line_arguments(int argc, char *argv[], ALTAIR_CONFIG_T *al
 				break;
 			case 'e':
 				altair_config->openai_endpoint = optarg;
+				break;
+			case 'r':
+				altair_config->remote_ft_server_ip = optarg;
 				break;
 			case 'h':
 				printf("%s\n", cmdLineArgsUsageText);

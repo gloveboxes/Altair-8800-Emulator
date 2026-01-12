@@ -110,6 +110,7 @@ set(Source
     "PortDrivers/onboard_io.c"
     "PortDrivers/openai.c"
     "PortDrivers/power_io.c"
+    "PortDrivers/files_io.c"
     )
 source_group("Source" FILES ${Source})
 

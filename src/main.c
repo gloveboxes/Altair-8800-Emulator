@@ -582,6 +582,14 @@ static void InitPeripheralAndHandlers(int argc, char *argv[])
         init_openai(altair_config.openai_api_key, altair_config.openai_endpoint);
     }
 
+    // Initialize file transfer I/O system
+    files_io_init();
+    if (!dx_isStringNullOrEmpty(altair_config.remote_ft_server_ip))
+    {
+        files_io_set_server_ip(altair_config.remote_ft_server_ip);
+        dx_Log_Debug("Remote FT server configured: %s:8090\n", altair_config.remote_ft_server_ip);
+    }
+
     dx_Log_Debug("Network interface %s %s\n", network_interface, dx_isNetworkConnected(network_interface) ? "connected" : "NOT connected");
 
     if (!front_panel_manager_init(altair_config.front_panel_selection))

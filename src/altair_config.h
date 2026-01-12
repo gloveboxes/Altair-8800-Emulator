@@ -16,6 +16,7 @@
 	char *open_weather_map_api_key;
 	char *openai_api_key;
 	char *openai_endpoint;
+	char *remote_ft_server_ip;
 	FRONT_PANEL_SELECTION front_panel_selection;
 	bool slow_cpu_on_disconnect;
 } ALTAIR_CONFIG_T;

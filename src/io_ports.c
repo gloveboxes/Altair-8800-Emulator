@@ -96,7 +96,13 @@ void io_port_out(uint8_t port, uint8_t data)
             ru.len = led_matrix_output(port, data, ru.buffer, sizeof(ru.buffer));
             break;
 
-        // File transfer IO Ports
+// Remote File Transfer IO Ports (FT protocol)
+		case 60: // FT command port
+		case 61: // FT data port
+			ru.len = files_io_output(port, data, ru.buffer, sizeof(ru.buffer));
+			break;
+
+		// File transfer IO Ports
         case 109: // Set webget.index = 0
         case 110: // Set getfile custom endpoint url
         case 111: // Load getfile (gf) custom endpoint url
@@ -141,7 +147,13 @@ uint8_t io_port_in(uint8_t port)
             retVal = time_input(port);
             break;
 
-        // File transfer IO Ports
+// Remote File Transfer IO Ports (FT protocol)
+		case 60: // FT status port
+		case 61: // FT data port
+			retVal = files_io_input(port);
+			break;
+
+		// File transfer IO Ports
         case 33:  // Is copyx file need copied and loaded
         case 201: // Read file from http(s) web server
             retVal = file_input(port);
