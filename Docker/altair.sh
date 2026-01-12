@@ -63,6 +63,10 @@ if [ ! -z "$OPENAI_ENDPOINT" ]; then
     ARGS="$ARGS -e $OPENAI_ENDPOINT"
 fi
 
+if [ ! -z "$REMOTE_FT_SERVER_IP" ]; then
+    ARGS="$ARGS -r $REMOTE_FT_SERVER_IP"
+fi
+
 # Cleanup function
 cleanup() {
     echo "Shutting down services..."
