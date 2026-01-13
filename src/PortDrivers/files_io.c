@@ -16,7 +16,6 @@
 #include <unistd.h>
 
 // Protocol constants
-#define FT_PROTO_SET_FILENAME 0x01
 #define FT_PROTO_GET_CHUNK 0x02
 #define FT_PROTO_CLOSE 0x03
 
@@ -42,7 +41,6 @@ enum FT_STATUS
 enum FT_COMMAND
 {
     FT_CMD_NOP = 0,
-    FT_CMD_SET_FILENAME = 1,
     FT_CMD_REQUEST_CHUNK = 3,
     FT_CMD_CLOSE = 4
 };
@@ -59,6 +57,9 @@ typedef struct
     size_t chunk_len;      // bytes available (including count byte)
     size_t chunk_position; // current read position
     
+    // File position tracking for stateless protocol
+    uint32_t file_offset;
+    
     enum FT_STATUS status;
     
     // TCP connection
@@ -74,7 +75,6 @@ static files_io_state_t ft_state;
 
 // Forward declarations
 static int connect_to_server(void);
-static int send_set_filename(const char *filename);
 static int send_get_chunk(void);
 static int send_close(void);
 static void disconnect_from_server(void);
@@ -85,7 +85,7 @@ void files_io_init(void)
     ft_state.status = FT_STATUS_IDLE;
     ft_state.sockfd = -1;
     
-    printf("[FT] File transfer I/O initialized (blocking mode)\n");
+    printf("[FT] File transfer I/O initialized (stateless protocol v3)\n");
 }
 
 void files_io_set_server_ip(const char *ip)
@@ -108,15 +108,17 @@ size_t files_io_output(int port, uint8_t data, char *buffer, size_t buffer_lengt
         // Data port - receive filename characters
         if (data == 0)
         {
-            // Null terminator - send filename to server
+            // Null terminator - filename complete
             ft_state.filename[ft_state.filename_idx] = '\0';
             
             // Reset state for new file
             ft_state.chunk_len = 0;
             ft_state.chunk_position = 0;
+            ft_state.file_offset = 0;
+            ft_state.filename_idx = 0;  // Reset for next filename
             ft_state.status = FT_STATUS_IDLE;
             
-            // Connect if needed
+            // Connect if needed (but don't send filename yet - GET_CHUNK will do it)
             if (!ft_state.connected)
             {
                 if (connect_to_server() != 0)
@@ -124,13 +126,6 @@ size_t files_io_output(int port, uint8_t data, char *buffer, size_t buffer_lengt
                     ft_state.status = FT_STATUS_ERROR;
                     return 0;
                 }
-            }
-            
-            // Send filename
-            if (send_set_filename(ft_state.filename) != 0)
-            {
-                ft_state.status = FT_STATUS_ERROR;
-                disconnect_from_server();
             }
         }
         else if (ft_state.filename_idx < sizeof(ft_state.filename) - 1)
@@ -149,16 +144,17 @@ size_t files_io_output(int port, uint8_t data, char *buffer, size_t buffer_lengt
         case FT_CMD_NOP:
             break;
             
-        case FT_CMD_SET_FILENAME:
-            // Reset filename buffer
-            ft_state.filename_idx = 0;
-            memset(ft_state.filename, 0, sizeof(ft_state.filename));
-            ft_state.chunk_len = 0;
-            ft_state.chunk_position = 0;
-            ft_state.status = FT_STATUS_IDLE;
-            break;
-            
         case FT_CMD_REQUEST_CHUNK:
+            // Connect if needed (connection may have been lost)
+            if (!ft_state.connected)
+            {
+                if (connect_to_server() != 0)
+                {
+                    ft_state.status = FT_STATUS_ERROR;
+                    return 0;
+                }
+            }
+            
             // If we still have data in buffer, don't request more
             if (ft_state.chunk_len > 0 && ft_state.chunk_position < ft_state.chunk_len)
             {
@@ -169,7 +165,7 @@ size_t files_io_output(int port, uint8_t data, char *buffer, size_t buffer_lengt
             ft_state.chunk_len = 0;
             ft_state.chunk_position = 0;
             
-            // Request chunk
+            // Request chunk (includes filename and offset - fully stateless)
             if (send_get_chunk() != 0)
             {
                 ft_state.status = FT_STATUS_ERROR;
@@ -271,42 +267,6 @@ static int connect_to_server(void)
     return 0;
 }
 
-static int send_set_filename(const char *filename)
-{
-    uint8_t cmd = FT_PROTO_SET_FILENAME;
-    
-    // Send command
-    if (send(ft_state.sockfd, &cmd, 1, 0) != 1)
-    {
-        printf("[FT] ERROR: Failed to send SET_FILENAME command\n");
-        return -1;
-    }
-    
-    // Send filename with null terminator
-    size_t len = strlen(filename) + 1;
-    if (send(ft_state.sockfd, filename, len, 0) != (ssize_t)len)
-    {
-        printf("[FT] ERROR: Failed to send filename\n");
-        return -1;
-    }
-    
-    // Receive status response
-    uint8_t status;
-    if (recv(ft_state.sockfd, &status, 1, 0) != 1)
-    {
-        printf("[FT] ERROR: Failed to receive status\n");
-        return -1;
-    }
-    
-    if (status != FT_PROTO_RESP_OK)
-    {
-        printf("[FT] ERROR: Server returned error: 0x%02X\n", status);
-        return -1;
-    }
-    
-    return 0;
-}
-
 static int send_get_chunk(void)
 {
     uint8_t cmd = FT_PROTO_GET_CHUNK;
@@ -318,6 +278,27 @@ static int send_get_chunk(void)
     if (send(ft_state.sockfd, &cmd, 1, 0) != 1)
     {
         printf("[FT] ERROR: Failed to send GET_CHUNK command\n");
+        return -1;
+    }
+    
+    // Send offset (4 bytes, little-endian)
+    uint8_t offset_bytes[4];
+    offset_bytes[0] = ft_state.file_offset & 0xFF;
+    offset_bytes[1] = (ft_state.file_offset >> 8) & 0xFF;
+    offset_bytes[2] = (ft_state.file_offset >> 16) & 0xFF;
+    offset_bytes[3] = (ft_state.file_offset >> 24) & 0xFF;
+    
+    if (send(ft_state.sockfd, offset_bytes, 4, 0) != 4)
+    {
+        printf("[FT] ERROR: Failed to send offset\n");
+        return -1;
+    }
+    
+    // Send filename with null terminator
+    size_t filename_len = strlen(ft_state.filename) + 1;
+    if (send(ft_state.sockfd, ft_state.filename, filename_len, 0) != (ssize_t)filename_len)
+    {
+        printf("[FT] ERROR: Failed to send filename\n");
         return -1;
     }
     
@@ -373,6 +354,7 @@ static int send_get_chunk(void)
     
     ft_state.chunk_len = chunk_size + 1; // +1 for count byte
     ft_state.chunk_position = 0;
+    ft_state.file_offset += chunk_size;  // Update offset for next request
     ft_state.status = (status == FT_PROTO_RESP_EOF) ? FT_STATUS_EOF : FT_STATUS_DATA_READY;
     
     return 0;
@@ -385,6 +367,10 @@ static int send_close(void)
     
     uint8_t cmd = FT_PROTO_CLOSE;
     send(ft_state.sockfd, &cmd, 1, 0);
+    
+    // Send filename for cache eviction
+    size_t filename_len = strlen(ft_state.filename) + 1;
+    send(ft_state.sockfd, ft_state.filename, filename_len, 0);
     
     // Try to receive response but don't fail if we can't
     uint8_t status;
