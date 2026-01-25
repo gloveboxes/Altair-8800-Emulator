@@ -31,7 +31,7 @@ File handle caching:
 import os
 import sys
 import socket
-import threading
+import asyncio
 import argparse
 import logging
 import time
@@ -65,11 +65,11 @@ class FileHandleCache:
         self.cache = OrderedDict()  # key -> (file_handle, last_access_time)
         self.max_size = max_size
         self.ttl_seconds = ttl_seconds
-        self.lock = threading.Lock()
+        self.lock = asyncio.Lock()
     
-    def get(self, key):
+    async def get(self, key):
         """Get cached file handle, return None if not found or expired"""
-        with self.lock:
+        async with self.lock:
             if key not in self.cache:
                 return None
             
@@ -86,9 +86,9 @@ class FileHandleCache:
             self.cache[key] = (file_handle, time.time())
             return file_handle
     
-    def put(self, key, file_handle):
+    async def put(self, key, file_handle):
         """Add file handle to cache"""
-        with self.lock:
+        async with self.lock:
             # Close existing if present
             if key in self.cache:
                 old_handle, _ = self.cache[key]
@@ -103,17 +103,17 @@ class FileHandleCache:
             
             self.cache[key] = (file_handle, time.time())
     
-    def remove(self, key):
+    async def remove(self, key):
         """Remove and close cached file handle"""
-        with self.lock:
+        async with self.lock:
             if key in self.cache:
                 file_handle, _ = self.cache[key]
                 file_handle.close()
                 del self.cache[key]
     
-    def clear(self):
+    async def clear(self):
         """Close all cached file handles"""
-        with self.lock:
+        async with self.lock:
             for file_handle, _ in self.cache.values():
                 file_handle.close()
             self.cache.clear()
@@ -122,10 +122,11 @@ class FileHandleCache:
 class ClientSession:
     """Handles a single client connection"""
     
-    def __init__(self, conn: socket.socket, addr: tuple, files_dir: Path, file_cache: FileHandleCache):
-        self.conn = conn
-        self.addr = addr
-        self.client_ip = addr[0]
+    def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, files_dir: Path, file_cache: FileHandleCache):
+        self.reader = reader
+        self.writer = writer
+        self.addr = writer.get_extra_info('peername')
+        self.client_ip = self.addr[0] if self.addr else 'unknown'
         self.files_dir = files_dir
         self.file_cache = file_cache
         self.running = True
@@ -135,14 +136,14 @@ class ClientSession:
         self.filename = ""
         self.file_position = 0
         
-    def handle(self):
+    async def handle(self):
         """Main handler loop for client connection"""
         logger.info(f"Client connected: {self.client_ip}")
         
         try:
             while self.running:
                 # Read command byte
-                cmd_data = self._recv_exact(1)
+                cmd_data = await self._recv_exact(1)
                 if not cmd_data:
                     break
                     
@@ -150,55 +151,61 @@ class ClientSession:
                 logger.info(f"[{self.client_ip}] Received command: 0x{cmd:02X}")
                 
                 if cmd == CMD_SET_FILENAME:
-                    self._handle_set_filename()
+                    await self._handle_set_filename()
                 elif cmd == CMD_GET_CHUNK:
-                    self._handle_get_chunk()
+                    await self._handle_get_chunk()
                 elif cmd == CMD_CLOSE:
-                    self._handle_close()
+                    await self._handle_close()
                 else:
                     logger.warning(f"Unknown command: 0x{cmd:02X}")
-                    self.conn.sendall(bytes([RESP_ERROR]))
+                    self.writer.write(bytes([RESP_ERROR]))
+                    await self.writer.drain()
                     
         except ConnectionResetError:
             logger.info(f"Client disconnected: {self.client_ip}")
         except Exception as e:
             logger.error(f"Error handling client {self.client_ip}: {e}")
         finally:
-            self._close_file()
-            self.conn.close()
+            await self._close_file()
+            try:
+                self.writer.close()
+                await self.writer.wait_closed()
+            except:
+                pass
             logger.info(f"Connection closed: {self.client_ip}")
     
-    def _recv_exact(self, size: int) -> bytes:
+    async def _recv_exact(self, size: int) -> bytes:
         """Receive exactly 'size' bytes from the connection"""
-        data = b''
-        while len(data) < size:
-            chunk = self.conn.recv(size - len(data))
-            if not chunk:
-                return None
-            data += chunk
-        return data
+        try:
+            data = await self.reader.readexactly(size)
+            return data
+        except asyncio.IncompleteReadError:
+            return None
+        except Exception:
+            return None
     
-    def _recv_until_null(self) -> str:
+    async def _recv_until_null(self) -> str:
         """Receive bytes until null terminator"""
         data = b''
-        while True:
-            byte = self.conn.recv(1)
-            if not byte:
-                return None
-            if byte[0] == 0:
-                break
-            data += byte
-            if len(data) > 256:  # Safety limit
-                break
-        return data.decode('utf-8', errors='replace')
+        try:
+            while True:
+                byte = await self.reader.readexactly(1)
+                if byte[0] == 0:
+                    break
+                data += byte
+                if len(data) > 256:  # Safety limit
+                    break
+            return data.decode('utf-8', errors='replace')
+        except:
+            return None
     
-    def _handle_set_filename(self):
+    async def _handle_set_filename(self):
         """Handle SET_FILENAME command"""
         # Close any existing file
-        self._close_file()
+        await self._close_file()
         
         # Receive null-terminated filename
-        filename = self._recv_until_null()
+        filename = await self._recv_until_null()
         if filename is None:
             return
             
@@ -209,7 +216,8 @@ class ClientSession:
         elif filename_lower.startswith('https://') or filename_lower.startswith('http://'):
             # Future support for internet proxy
             logger.warning(f"[{self.client_ip}] HTTP/HTTPS not yet supported: {filename}")
-            self.conn.sendall(bytes([RESP_ERROR]))
+            self.writer.write(bytes([RESP_ERROR]))
+            await self.writer.drain()
             return
             
         # Sanitize filename (remove path traversal attempts)
@@ -223,19 +231,22 @@ class ClientSession:
         try:
             if not filepath.exists():
                 logger.warning(f"[{self.client_ip}] File not found: {filepath}")
-                self.conn.sendall(bytes([RESP_ERROR]))
+                self.writer.write(bytes([RESP_ERROR]))
+                await self.writer.drain()
                 return
                 
             self.current_file = open(filepath, 'rb')
             self.file_position = 0
-            self.conn.sendall(bytes([RESP_OK]))
+            self.writer.write(bytes([RESP_OK]))
+            await self.writer.drain()
             logger.info(f"[{self.client_ip}] File opened: {filename}")
             
         except Exception as e:
             logger.error(f"[{self.client_ip}] Error opening file: {e}")
-            self.conn.sendall(bytes([RESP_ERROR]))
+            self.writer.write(bytes([RESP_ERROR]))
+            await self.writer.drain()
     
-    def _handle_get_chunk(self):
+    async def _handle_get_chunk(self):
         """Handle GET_CHUNK command (stateless)
 
         Request format:
@@ -247,13 +258,13 @@ class ClientSession:
         """
         try:
             # Read offset (4 bytes, little-endian)
-            offset_data = self._recv_exact(4)
+            offset_data = await self._recv_exact(4)
             if not offset_data:
                 return
             offset = int.from_bytes(offset_data, byteorder='little')
             
             # Read filename (null-terminated)
-            filename = self._recv_until_null()
+            filename = await self._recv_until_null()
             if filename is None:
                 return
             
@@ -263,7 +274,8 @@ class ClientSession:
                 filename = filename[7:]
             elif filename_lower.startswith('https://') or filename_lower.startswith('http://'):
                 logger.warning(f"[{self.client_ip}] HTTP/HTTPS not yet supported: {filename}")
-                self.conn.sendall(bytes([RESP_ERROR, 0]))
+                self.writer.write(bytes([RESP_ERROR, 0]))
+                await self.writer.drain()
                 return
             
             # Sanitize filename
@@ -272,17 +284,18 @@ class ClientSession:
             
             if not filepath.exists():
                 logger.warning(f"[{self.client_ip}] File not found: {filepath}")
-                self.conn.sendall(bytes([RESP_ERROR, 0]))
+                self.writer.write(bytes([RESP_ERROR, 0]))
+                await self.writer.drain()
                 return
             
             # Try to get cached file handle
             cache_key = str(filepath)
-            file_handle = self.file_cache.get(cache_key)
+            file_handle = await self.file_cache.get(cache_key)
             
             if file_handle is None:
                 # Open new file and cache it
                 file_handle = open(filepath, 'rb')
-                self.file_cache.put(cache_key, file_handle)
+                await self.file_cache.put(cache_key, file_handle)
                 logger.debug(f"[{self.client_ip}] Opened and cached: {filename}")
             else:
                 logger.debug(f"[{self.client_ip}] Using cached file: {filename}")
@@ -290,22 +303,24 @@ class ClientSession:
             # Seek to requested offset
             file_handle.seek(offset)
             
-            # Read up to CHUNK_SIZE bytes
-            data = file_handle.read(CHUNK_SIZE)
+            # Read up to CHUNK_SIZE bytes + 1 to check for EOF in one operation
+            data = file_handle.read(CHUNK_SIZE + 1)
             bytes_read = len(data)
             
             if bytes_read == 0:
                 # At or past EOF - treat as error
                 response = bytes([RESP_ERROR, 0])
-                self.conn.sendall(response)
+                self.writer.write(response)
+                await self.writer.drain()
                 logger.debug(f"[{self.client_ip}] Sent ERROR for offset {offset} (EOF)")
                 return
             
-            # Check if there's more data after this chunk
-            next_byte = file_handle.read(1)
-            if next_byte:
-                # More data available
+            # Determine status based on bytes read
+            if bytes_read > CHUNK_SIZE:
+                # More data available (read the extra byte)
                 status = RESP_OK
+                data = data[:CHUNK_SIZE]  # Trim to CHUNK_SIZE
+                bytes_read = CHUNK_SIZE
             else:
                 # This is the last chunk
                 status = RESP_EOF
@@ -315,19 +330,21 @@ class ClientSession:
             
             # Response format: status + count + data (no padding)
             response = bytes([status, count_byte]) + data
-            self.conn.sendall(response)
+            self.writer.write(response)
+            await self.writer.drain()
             
             logger.info(f"[{self.client_ip}] Sent chunk: offset={offset}, bytes={bytes_read}, status={'EOF' if status == RESP_EOF else 'OK'}")
             
         except Exception as e:
             logger.error(f"[{self.client_ip}] Error reading chunk: {e}")
             response = bytes([RESP_ERROR, 0])
-            self.conn.sendall(response)
+            self.writer.write(response)
+            await self.writer.drain()
     
-    def _handle_close(self):
+    async def _handle_close(self):
         """Handle CLOSE command (optional cache eviction)"""
         # Read filename (null-terminated)
-        filename = self._recv_until_null()
+        filename = await self._recv_until_null()
         if filename is None:
             return
         
@@ -340,16 +357,17 @@ class ClientSession:
         
         # Remove from cache if present
         cache_key = str(filepath)
-        self.file_cache.remove(cache_key)
+        await self.file_cache.remove(cache_key)
         
         logger.info(f"[{self.client_ip}] Closed cached file: {filename}")
         
         # Also close legacy state if any
-        self._close_file()
+        await self._close_file()
         
-        self.conn.sendall(bytes([RESP_OK]))
+        self.writer.write(bytes([RESP_OK]))
+        await self.writer.drain()
     
-    def _close_file(self):
+    async def _close_file(self):
         """Close current file if open"""
         if self.current_file:
             self.current_file.close()
@@ -366,10 +384,24 @@ class RemoteFTServer:
         self.port = port
         self.files_dir = files_dir
         self.running = False
-        self.server_socket = None
+        self.server = None
         self.file_cache = FileHandleCache(max_size=cache_size, ttl_seconds=cache_ttl)
         
-    def start(self):
+    async def handle_client(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+        """Handle a new client connection"""
+        # Set TCP_NODELAY for lower latency
+        sock = writer.get_extra_info('socket')
+        if sock:
+            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            # Enable keepalive for better connection management
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+            # Optimize send buffer (64KB)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 65536)
+        
+        session = ClientSession(reader, writer, self.files_dir, self.file_cache)
+        await session.handle()
+        
+    async def start(self):
         """Start the server"""
         # Ensure directory exists
         if not self.files_dir.exists():
@@ -377,41 +409,29 @@ class RemoteFTServer:
             logger.error("Please create the directory or specify a valid --files-dir")
             sys.exit(1)
             
-        # Create server socket
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.server_socket.bind((self.host, self.port))
-        self.server_socket.listen(5)
+        # Create server with increased backlog
+        self.server = await asyncio.start_server(
+            self.handle_client,
+            self.host,
+            self.port,
+            backlog=128  # Increased from 5 to 128 for better scalability
+        )
         
         self.running = True
         logger.info(f"Remote FT Server listening on {self.host}:{self.port}")
         logger.info(f"Files directory: {self.files_dir}")
+        logger.info(f"Async mode: backlog=128, optimized for low-latency")
         
-        try:
-            while self.running:
-                try:
-                    conn, addr = self.server_socket.accept()
-                    
-                    # Disable Nagle's algorithm for lower latency
-                    conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-                    
-                    # Handle client in a new thread
-                    session = ClientSession(conn, addr, self.files_dir, self.file_cache)
-                    thread = threading.Thread(target=session.handle, daemon=True)
-                    thread.start()
-                    
-                except KeyboardInterrupt:
-                    break
-                    
-        finally:
-            self.stop()
+        async with self.server:
+            await self.server.serve_forever()
     
-    def stop(self):
+    async def stop(self):
         """Stop the server"""
         self.running = False
-        if self.server_socket:
-            self.server_socket.close()
-        self.file_cache.clear()
+        if self.server:
+            self.server.close()
+            await self.server.wait_closed()
+        await self.file_cache.clear()
         logger.info("Server stopped")
 
 
@@ -450,7 +470,7 @@ def main():
     if args.debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
-    print("FT server protocol v3 (stateless with caching)")
+    print("FT server protocol v3 (stateless with caching) - Async mode")
 
     server = RemoteFTServer(
         host=args.host,
@@ -461,7 +481,7 @@ def main():
     )
     
     try:
-        server.start()
+        asyncio.run(server.start())
     except KeyboardInterrupt:
         logger.info("Interrupted by user")
     except Exception as e:
