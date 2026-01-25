@@ -1,0 +1,2594 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Altair 8800 Emulator">
+      
+      
+        <meta name="author" content="Dave Glover">
+      
+      
+      
+        <link rel="prev" href="../05-Altair-BASIC-programming/">
+      
+      
+        <link rel="next" href="../../40-deploy-with-docker/100-Create-Docker-images/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../media/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Front Panel Programming - Altair 8800 Emulator</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../css/custom.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+   <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"/><style>
+    html.glightbox-open { overflow: initial; height: 100%; }
+    .gslide-title { margin-top: 0px; user-select: text; }
+    .gslide-desc { color: #666; user-select: text; }
+    .gslide-image img { background: white; }
+    .gscrollbar-fixer { padding-right: 15px; }
+    .gdesc-inner { font-size: 0.75rem; }
+    body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color);}
+    body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color);}
+    body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color);}</style> <script src="../../assets/javascripts/glightbox.min.js"></script></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#raspberry-pi-sense-hat-led-panel" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Altair 8800 Emulator" class="md-header__button md-logo" aria-label="Altair 8800 Emulator" data-md-component="logo">
+      
+  <img src="../../media/favicon.ico" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Altair 8800 Emulator
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Front Panel Programming
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="pink"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 2c-1.82 0-3.53.5-5 1.35C8 5.08 10 8.3 10 12s-2 6.92-5 8.65C6.47 21.5 8.18 22 10 22a10 10 0 0 0 10-10A10 10 0 0 0 10 2"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="amber" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/gloveboxes/Altair-8800-Emulator" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Altair 8800 Emulator
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Altair 8800 Emulator" class="md-nav__button md-logo" aria-label="Altair 8800 Emulator" data-md-component="logo">
+      
+  <img src="../../media/favicon.ico" alt="logo">
+
+    </a>
+    Altair 8800 Emulator
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/gloveboxes/Altair-8800-Emulator" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Altair 8800 Emulator
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../navigating-the-docs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Navigating the Docs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Fundamentals
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../20-fundamentals/05-Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../20-fundamentals/10-deployment-options/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment Options
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../20-fundamentals/23-Altair-emulator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Emulator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../20-fundamentals/25-Web-Terminal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Start the Web Terminal
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../20-fundamentals/30-introduction-cpm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Learn about CP/M
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../20-fundamentals/40-Rebooting-the-Altair/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rebooting the Emulator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deploy with Docker
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Deploy with Docker
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../40-deploy-with-docker/10-introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../40-deploy-with-docker/15-install-prerequisites/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Install Prerequisites
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../40-deploy-with-docker/17-start-container/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Start the Emulator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build from source
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Build from source
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../45-build-from-source/01-Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../45-build-from-source/03-Build-from-vs-code/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build from Visual Studio Code
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build from Command Line
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Build from Command Line
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_3_1" id="__nav_5_3_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Install Prerequisites
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Install Prerequisites
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../45-build-from-source/Install%20prerequisites/01-Linux-users/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Linux
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../45-build-from-source/Install%20prerequisites/02-macOS-users/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    macOS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../45-build-from-source/Install%20prerequisites/03-Windows-users/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Windows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../45-build-from-source/Install%20prerequisites/04-Raspberry-Pi-users/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Raspberry Pi OS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../45-build-from-source/04-Compile-from-CLI/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Source
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../45-build-from-source/05-Run-the-emulator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Start the Emulator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Program the Altair
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Program the Altair
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00-Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00-Manuals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Manuals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-Vibe-Coding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vibe Coding the Altair
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-Editing-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Editing Files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-i8080-IO-Ports/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intel 8080 IO Ports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-Microsoft-BASIC-programming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Microsoft BASIC
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03-C-programming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C Programming
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04-Assembly-programming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intel 8080 Assembler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-Altair-BASIC-programming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Altair BASIC Programming
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Front Panel Programming
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Front Panel Programming
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#raspberry-pi-sense-hat-led-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Raspberry Pi Sense HAT LED Panel
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#virtual-front-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Virtual front panel
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-list-virtual-front-panel-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The List virtual front panel command
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-trace-virtual-front-panel-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Trace virtual front panel command
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loop-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loop example
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker Images
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Docker Images
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../40-deploy-with-docker/100-Create-Docker-images/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Docker Images
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Run on Azure Sphere
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Run on Azure Sphere
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../50-azsphere/01-Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../50-azsphere/03-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_8_3" id="__nav_8_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deploy the Altair
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_8_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Deploy the Altair
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../50-azsphere/01-Deploy-the-Altair/01-Deployment-options/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment Options
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../50-azsphere/01-Deploy-the-Altair/02-Clone-Altair-repo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clone the Altair repo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../50-azsphere/01-Deploy-the-Altair/03-Deploy-prebuilt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deploy Pre-built Images
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../50-azsphere/01-Deploy-the-Altair/04-WiFi-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wi-Fi Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../50-azsphere/01-Deploy-the-Altair/05-Create-boot-SD-card/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Create a Boot SD Card
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../50-azsphere/01-Deploy-the-Altair/06-Power-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Power Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../50-azsphere/01-Deploy-the-Altair/07-Connect-Altair-web-terminal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Connect Altair Web Terminal
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_8_4" id="__nav_8_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cloud services
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_8_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Cloud services
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../50-azsphere/Cloud-services/01-Add-cloud-services/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adding Cloud Services
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_8_5" id="__nav_8_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compile and Deploy
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_8_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Compile and Deploy
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../50-azsphere/Compile-and-deploy/01-Install-developer-tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Install Developer Tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../50-azsphere/Compile-and-deploy/02-Deploy-the-Altair-to-Azure-Sphere/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deploy the Altair Emulator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../50-azsphere/40-Manage-disk-images/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Manage Disk Images
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#raspberry-pi-sense-hat-led-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Raspberry Pi Sense HAT LED Panel
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#virtual-front-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Virtual front panel
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-list-virtual-front-panel-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The List virtual front panel command
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-trace-virtual-front-panel-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Trace virtual front panel command
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loop-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loop example
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+  <h1>Front Panel Programming</h1>
+
+<p>The original Altair 8800 was programmed directly on the front panel. It was a painstaking, error-prone process to load and run a program. The Altair 8800 had a series of LEDs and switches for loading apps and determining the state of the machine.</p>
+<p><a class="glightbox" href="../img/altair-8800-smithsonian-museum.png" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img alt="The image shows the original Altair 8800" src="../img/altair-8800-smithsonian-museum.png" /></a></p>
+<!-- :::image type="content" source="../../static/img/altair-8800-smithsonian-museum.png" alt-text="Picture of the Altair 8800." border = "false"::: -->
+<p><a href="https://commons.wikimedia.org/wiki/File:Altair_8800,_Smithsonian_Museum.jpg" target="_blank">Altair 8800 image attribution - Smithsonian Museum</a></p>
+<p>Programming the Altair emulator by using the front panel and Intel opcodes is a great way for you to understand how computers work.</p>
+<h2 id="raspberry-pi-sense-hat-led-panel">Raspberry Pi Sense HAT LED Panel<a class="headerlink" href="#raspberry-pi-sense-hat-led-panel" title="Permanent link">&para;</a></h2>
+<p>Programming the Altair emulator with the virtual front panel is best experienced running the Altair emulator on a Raspberry Pi with a Pi Sense HAT attached.</p>
+<h2 id="virtual-front-panel">Virtual front panel<a class="headerlink" href="#virtual-front-panel" title="Permanent link">&para;</a></h2>
+<div class="admonition warning">
+<p class="admonition-title">The Altair Web Terminal Must Be in Line Mode</p>
+<p>To access the virtual front panel, the Altair web terminal must be in Line mode. To toggle between Line mode and Character mode, select <strong>Ctrl+L</strong> or click the <strong>Toggle Line/Character Mode</strong> button in the web terminal toolbar.</p>
+</div>
+<p>To access the virtual front panel, you must be connected to the Altair emulator via the web terminal.</p>
+<blockquote>
+<p>In the following procedure, you're directly setting memory addresses. You might overwrite something important and crash the Altair emulator. If this happens, just <a href="../../20-fundamentals/40-Rebooting-the-Altair/" target="_blank">reboot the Altair</a> and experiment again.</p>
+</blockquote>
+<ol>
+<li>From the web terminal, select <strong>Ctrl+M</strong> to enter the CPU monitor.</li>
+<li>You can enter binary strings to represent the switches on a real Altair front panel. For example, if you type <strong>0000000011110000</strong> and then select the <strong>Enter</strong> key, you set 12 switches off and 4 switches on.</li>
+</ol>
+<p>Use the following letters to emulate the Altair front panel switches:
+    * <strong>e</strong> = EXAMINE
+    * <strong>en</strong> = EXAMINE NEXT
+    * <strong>d</strong> = DEPOSIT
+    * <strong>dn</strong> = DEPOSIT NEXT
+    * <strong>s</strong> = SINGLE STEP</p>
+<ol>
+<li>
+<p>If you want to load the 3-byte <a href="https://github.com/AzureSphereCloudEnabledAltair8800/Altair8800.manuals/blob/master/8080asm.pdf?azure-portal=true" target="_blank">Intel 8080 Jmp</a> at address 0x0100, use the following sequence of commands. Be sure to select <strong>Enter</strong> after you finish typing each instruction.</p>
+<ol>
+<li>Enter <strong>100000000</strong> (0x0100).</li>
+<li>Enter <strong>e</strong> to set the CPU current instruction pointer to address 0x0100.</li>
+<li>Enter <strong>11000011</strong>, the Intel 8080 opcode for Jmp.</li>
+<li>Enter <strong>d</strong> to deposit the instruction at address 0x0000.</li>
+<li>Enter <strong>0</strong> to set the <strong>low</strong> order address for the Jmp instruction.</li>
+<li>Enter <strong>dn</strong> to increment the CPU instruction pointer to the next address location and deposit the high-order byte of the Jmp instruction.</li>
+<li>Enter <strong>0</strong> to set the <strong>high</strong> order address for the Jmp instruction.</li>
+<li>Enter <strong>dn</strong> again to increment the CPU instruction pointer to the next address location and deposit the high-order byte of the Jmp instruction.</li>
+</ol>
+</li>
+<li>
+<p>To execute the instructions that you entered:</p>
+<ol>
+<li>Enter <strong>100000000</strong> (0x0100).</li>
+<li>Enter <strong>e</strong> to set the CPU instruction pointer to address 0x0100.</li>
+<li>Enter <strong>s</strong> to SINGLE STEP the CPU.</li>
+<li>
+<p>Enter <strong>s</strong> again to SINGLE STEP the CPU. The CPU address is now s0x0000 after execution of the jump to address 0x0000.</p>
+<div class="highlight"><pre><span></span><code>Single step: Address bus: 00000000 00000000 (0x0000), Data bus 11000011 (0xc3), JMP adr          (3 byte instruction)
+</code></pre></div>
+</li>
+</ol>
+</li>
+<li>
+<p>To exit the CPU monitor, select <strong>Ctrl+M</strong>.</p>
+</li>
+</ol>
+<h2 id="the-list-virtual-front-panel-command">The List virtual front panel command<a class="headerlink" href="#the-list-virtual-front-panel-command" title="Permanent link">&para;</a></h2>
+<p>This is an extended Altair front panel command.</p>
+<p>The <strong>List</strong> command will disassemble the next 20 Intel 8080 instructions from the current CPU instruction pointer set by the EXAMINE switch. To use the <strong>List command</strong> follow these steps.</p>
+<ol>
+<li>
+<p>From the web terminal, list the <strong>DEMO.ASM</strong> file. Note the first instruction, this application will be loaded at address 0100H (100000000 binary)</p>
+<div class="highlight"><pre><span></span><code>type demo.asm
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="w">        </span><span class="nf">ORG</span><span class="w">     </span><span class="mi">0100</span><span class="no">H</span><span class="w">           </span><span class="c1">; CP/M base of TPA (transient program area)</span>
+<span class="w">        </span><span class="nf">OUT</span><span class="w">     </span><span class="mi">30</span>
+<span class="w">        </span><span class="nf">MVI</span><span class="w">     </span><span class="no">C</span><span class="p">,</span><span class="mi">09</span><span class="no">H</span><span class="w">           </span><span class="c1">; Print string function</span>
+<span class="w">        </span><span class="nf">LXI</span><span class="w">     </span><span class="no">D</span><span class="p">,</span><span class="no">MESSAGE</span><span class="w">       </span><span class="c1">; Point</span>
+<span class="w">        </span><span class="nf">CALL</span><span class="w">    </span><span class="mi">0005</span><span class="no">H</span><span class="w">           </span><span class="c1">; Call bdos</span>
+<span class="w">        </span><span class="nf">RET</span><span class="w">                     </span><span class="c1">; To cp/m</span>
+<span class="nl">MESSAGE:</span><span class="nf">DB</span><span class="w">      </span><span class="mi">0</span><span class="no">DH</span><span class="p">,</span><span class="mi">0</span><span class="no">AH</span><span class="p">,</span><span class="err">&#39;</span><span class="no">Hello</span><span class="p">,</span><span class="w"> </span><span class="no">World</span><span class="p">!</span><span class="err">&#39;</span><span class="p">,</span><span class="mi">0</span><span class="no">DH</span><span class="p">,</span><span class="mi">0</span><span class="no">AH</span><span class="p">,</span><span class="err">&#39;</span><span class="no">$</span><span class="err">&#39;</span>
+<span class="w">        </span><span class="nf">END</span>
+</code></pre></div>
+</li>
+<li>
+<p>Run the demo application, this will load the demo application at address 100H (100000000 binary) and then execute the application.</p>
+<div class="highlight"><pre><span></span><code>demo
+</code></pre></div>
+</li>
+<li>
+<p>From the web terminal, select <strong>Ctrl+M</strong> to enter the CPU monitor.</p>
+</li>
+<li>
+<p>Set the CPU instruction pointer to 100H, type <strong>100000000</strong>, and then select Enter.</p>
+<div class="highlight"><pre><span></span><code>100000000
+</code></pre></div>
+<p>The CPU monitor will display the following text.</p>
+<div class="highlight"><pre><span></span><code>CPU MONITOR&gt; 100000000
+        Input: 00000001 00000000 (0x0100), NOP (1 byte instruction)
+</code></pre></div>
+</li>
+<li>
+<p>Flick the virtual EXAMINE switch by typing <strong>E</strong> followed by Enter. This will set the CPU's current instruction pointer to 100H. The CPU monitor will display the following text.</p>
+<div class="highlight"><pre><span></span><code>CPU MONITOR&gt; e
+        Examine: Address bus: 0000000100000000 (0x0100), Data bus 11010011 (0xd3), OUT D8           (2 byte instruction)
+</code></pre></div>
+</li>
+<li>
+<p>Type <strong>L</strong>, and press Enter. This will disassemble the next 20 Intel 8080 instructions. Compare the disassembly with the code in <em>DEMO.ASM</em>.</p>
+<blockquote>
+<p><strong>Note, that the CPU instruction pointer will be returned to 100H after the disassembly.</strong></p>
+</blockquote>
+<div class="highlight"><pre><span></span><code>Disassemble: Address bus: 0000000100000000 (0x0100), Data bus 11010011 (0xd3), OUT D8           (2 byte instruction)
+Disassemble: Address bus: 0000000100000001 (0x0101), Data bus 00011110 (0x1e)
+Disassemble: Address bus: 0000000100000010 (0x0102), Data bus 00001110 (0x0e), MVI C,D8         (2 byte instruction)
+Disassemble: Address bus: 0000000100000011 (0x0103), Data bus 00001001 (0x09)
+Disassemble: Address bus: 0000000100000100 (0x0104), Data bus 00010001 (0x11), LXI D,D16        (3 byte instruction)
+Disassemble: Address bus: 0000000100000101 (0x0105), Data bus 00001011 (0x0b)
+Disassemble: Address bus: 0000000100000110 (0x0106), Data bus 00000001 (0x01)
+Disassemble: Address bus: 0000000100000111 (0x0107), Data bus 11001101 (0xcd), CALL adr         (3 byte instruction)
+Disassemble: Address bus: 0000000100001000 (0x0108), Data bus 00000101 (0x05)
+Disassemble: Address bus: 0000000100001001 (0x0109), Data bus 00000000 (0x00)
+Disassemble: Address bus: 0000000100001010 (0x010a), Data bus 11001001 (0xc9), RET              (1 byte instruction)
+Disassemble: Address bus: 0000000100001011 (0x010b), Data bus 00001101 (0x0d), DCR C            (1 byte instruction)
+Disassemble: Address bus: 0000000100001100 (0x010c), Data bus 00001010 (0x0a), LDAX B           (1 byte instruction)
+Disassemble: Address bus: 0000000100001101 (0x010d), Data bus 01001000 (0x48), MOV C,B          (1 byte instruction)
+Disassemble: Address bus: 0000000100001110 (0x010e), Data bus 01100101 (0x65), MOV H,L          (1 byte instruction)
+Disassemble: Address bus: 0000000100001111 (0x010f), Data bus 01101100 (0x6c), MOV L,H          (1 byte instruction)
+Disassemble: Address bus: 0000000100010000 (0x0110), Data bus 01101100 (0x6c), MOV L,H          (1 byte instruction)
+Disassemble: Address bus: 0000000100010001 (0x0111), Data bus 01101111 (0x6f), MOV L,A          (1 byte instruction)
+Disassemble: Address bus: 0000000100010010 (0x0112), Data bus 00101100 (0x2c), INR L            (1 byte instruction)
+Disassemble: Address bus: 0000000100010011 (0x0113), Data bus 00100000 (0x20), -                (0 byte instruction)
+Disassemble: Address bus: 0000000100010100 (0x0114), Data bus 01010111 (0x57), MOV D,A          (1 byte instruction)
+Disassemble: Address bus: 0000000100010101 (0x0115), Data bus 01101111 (0x6f), MOV L,A          (1 byte instruction)
+Disassemble: Address bus: 0000000100010110 (0x0116), Data bus 01110010 (0x72), MOV M,D          (1 byte instruction)
+Disassemble: Address bus: 0000000100010111 (0x0117), Data bus 01101100 (0x6c), MOV L,H          (1 byte instruction)
+Disassemble: Address bus: 0000000100011000 (0x0118), Data bus 01100100 (0x64), MOV H,H          (1 byte instruction)
+Disassemble: Address bus: 0000000100011001 (0x0119), Data bus 00100001 (0x21), LXI H,D16        (3 byte instruction)
+Disassemble: Address bus: 0000000100011010 (0x011a), Data bus 00001101 (0x0d)
+Disassemble: Address bus: 0000000100011011 (0x011b), Data bus 00001010 (0x0a)
+</code></pre></div>
+</li>
+<li>
+<p>From the web terminal, select <strong>Ctrl+M</strong> to exit the CPU monitor. This will resume code execution from the current CPU instruction pointer. Depending on what you have been changing in memory, you may need to restart CP/M.</p>
+</li>
+</ol>
+<h2 id="the-trace-virtual-front-panel-command">The Trace virtual front panel command<a class="headerlink" href="#the-trace-virtual-front-panel-command" title="Permanent link">&para;</a></h2>
+<p>This is an extended Altair front panel command.</p>
+<p>The trace command disassembles while executing the next 20 instructions from the current CPU instruction point. When the trace completes, the current CPU instruction pointer will point to the next instruction to be executed.</p>
+<ol>
+<li>
+<p>Run the demo application, this will load the demo application at address 100H (100000000 binary) and then execute the application.</p>
+<div class="highlight"><pre><span></span><code>demo
+</code></pre></div>
+</li>
+<li>
+<p>From the web terminal, select <strong>Ctrl+M</strong> to enter the CPU monitor.</p>
+</li>
+<li>
+<p>Set the CPU instruction pointer to 100H, type and then press Enter.</p>
+<div class="highlight"><pre><span></span><code>100000000
+</code></pre></div>
+<p>The CPU monitor will display the following text.</p>
+<div class="highlight"><pre><span></span><code>CPU MONITOR&gt; 100000000
+        Input: 00000001 00000000 (0x0100), NOP (1 byte instruction)
+</code></pre></div>
+</li>
+<li>
+<p>Flick the virtual EXAMINE switch by typing <strong>E</strong> followed by Enter. This will set the CPU's current instruction pointer to 100H. The CPU monitor will display the following text.</p>
+<div class="highlight"><pre><span></span><code>CPU MONITOR&gt; e
+        Examine: Address bus: 0000000100000000 (0x0100), Data bus 11010011 (0xd3), OUT D8           (2 byte instruction)
+</code></pre></div>
+</li>
+<li>
+<p>Type <strong>T</strong>, and press Enter. This will start a trace of the next 20 Intel 8080 instructions, following the execution path of the code in memory.</p>
+<div class="highlight"><pre><span></span><code>Trace: Address bus: 0000000100000000 (0x0100), Data bus 11010011 (0xd3), OUT D8           (2 byte instruction)
+Trace: Address bus: 0000000100000001 (0x0101), Data bus 00011110 (0x1e)
+Trace: Address bus: 0000000100000010 (0x0102), Data bus 00001110 (0x0e), MVI C,D8         (2 byte instruction)
+Trace: Address bus: 0000000100000011 (0x0103), Data bus 00001001 (0x09)
+Trace: Address bus: 0000000100000100 (0x0104), Data bus 00010001 (0x11), LXI D,D16        (3 byte instruction)
+Trace: Address bus: 0000000100000101 (0x0105), Data bus 00001011 (0x0b)
+Trace: Address bus: 0000000100000110 (0x0106), Data bus 00000001 (0x01)
+Trace: Address bus: 0000000100000111 (0x0107), Data bus 11001101 (0xcd), CALL adr         (3 byte instruction)
+Trace: Address bus: 0000000100001000 (0x0108), Data bus 00000101 (0x05)
+Trace: Address bus: 0000000100001001 (0x0109), Data bus 00000000 (0x00)
+Trace: Address bus: 0000000000000101 (0x0005), Data bus 11000011 (0xc3), JMP adr          (3 byte instruction)
+Trace: Address bus: 0000000000000110 (0x0006), Data bus 00000110 (0x06)
+Trace: Address bus: 0000000000000111 (0x0007), Data bus 11100111 (0xe7)
+Trace: Address bus: 1110011100000110 (0xe706), Data bus 11000011 (0xc3), JMP adr          (3 byte instruction)
+Trace: Address bus: 1110011100000111 (0xe707), Data bus 00010001 (0x11)
+Trace: Address bus: 1110011100001000 (0xe708), Data bus 11100111 (0xe7)
+Trace: Address bus: 1110011100010001 (0xe711), Data bus 11101011 (0xeb), XCHG             (1 byte instruction)
+Trace: Address bus: 1110011100010010 (0xe712), Data bus 00100010 (0x22), SHLD adr         (3 byte instruction)
+Trace: Address bus: 1110011100010011 (0xe713), Data bus 01000011 (0x43)
+Trace: Address bus: 1110011100010100 (0xe714), Data bus 11101010 (0xea)
+Trace: Address bus: 1110011100010101 (0xe715), Data bus 11101011 (0xeb), XCHG             (1 byte instruction)
+Trace: Address bus: 1110011100010110 (0xe716), Data bus 01111011 (0x7b), MOV A,E          (1 byte instruction)
+Trace: Address bus: 1111010011010110 (0xf4d6), Data bus 00001011 (0x0b), DCX B            (1 byte instruction)
+Trace: Address bus: 1110011100011010 (0xe71a), Data bus 00100001 (0x21), LXI H,D16        (3 byte instruction)
+Trace: Address bus: 1110011100011011 (0xe71b), Data bus 00000000 (0x00)
+Trace: Address bus: 1110011100011100 (0xe71c), Data bus 00000000 (0x00)
+Trace: Address bus: 1110011100011101 (0xe71d), Data bus 00100010 (0x22), SHLD adr         (3 byte instruction)
+Trace: Address bus: 1110011100011110 (0xe71e), Data bus 01000101 (0x45)
+Trace: Address bus: 1110011100011111 (0xe71f), Data bus 11101010 (0xea)
+Trace: Address bus: 1110011100100000 (0xe720), Data bus 00111001 (0x39), DAD SP           (1 byte instruction)
+Trace: Address bus: 1110011100100001 (0xe721), Data bus 00100010 (0x22), SHLD adr         (3 byte instruction)
+Trace: Address bus: 1110011100100010 (0xe722), Data bus 00001111 (0x0f)
+Trace: Address bus: 1110011100100011 (0xe723), Data bus 11101010 (0xea)
+Trace: Address bus: 1110011100100100 (0xe724), Data bus 00110001 (0x31), LXI SP, D16      (3 byte instruction)
+Trace: Address bus: 1110011100100101 (0xe725), Data bus 01000001 (0x41)
+Trace: Address bus: 1110011100100110 (0xe726), Data bus 11101010 (0xea)
+Trace: Address bus: 1110011100100111 (0xe727), Data bus 10101111 (0xaf), XRA A            (1 byte instruction)
+Trace: Address bus: 1111010011100000 (0xf4e0), Data bus 00000000 (0x00), NOP              (1 byte instruction)
+Trace: Address bus: 1111010011011110 (0xf4de), Data bus 00000000 (0x00), NOP              (1 byte instruction)
+Trace: Address bus: 1110011100101110 (0xe72e), Data bus 00100001 (0x21), LXI H,D16        (3 byte instruction)
+Trace: Address bus: 1110011100101111 (0xe72f), Data bus 01110100 (0x74)
+Trace: Address bus: 1110011100110000 (0xe730), Data bus 11110100 (0xf4)
+</code></pre></div>
+</li>
+<li>
+<p>From the web terminal, select <strong>Ctrl+M</strong> to exit the CPU monitor. This will resume code execution from the current CPU instruction pointer. Depending on what you have been changing in memory, you may need to <a href="../../20-fundamentals/40-Rebooting-the-Altair/" target="_blank">reboot CP/M</a>.</p>
+</li>
+</ol>
+<h2 id="loop-example">Loop example<a class="headerlink" href="#loop-example" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>Disassemble: Address bus: 0000000100000000 (0x0100), Data bus 11000011 (0xc3), JMP adr          (3 byte instruction)
+Disassemble: Address bus: 0000000100000001 (0x0101), Data bus 00000011 (0x03)
+Disassemble: Address bus: 0000000100000010 (0x0102), Data bus 00000001 (0x01)
+Disassemble: Address bus: 0000000100000011 (0x0103), Data bus 11000011 (0xc3), JMP adr          (3 byte instruction)
+Disassemble: Address bus: 0000000100000100 (0x0104), Data bus 00000000 (0x00)
+Disassemble: Address bus: 0000000100000101 (0x0105), Data bus 00000001 (0x01)
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../05-Altair-BASIC-programming/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Altair BASIC Programming">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Altair BASIC Programming
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../40-deploy-with-docker/100-Create-Docker-images/" class="md-footer__link md-footer__link--next" aria-label="Next: Build Docker Images">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Build Docker Images
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2023 - present Microsoft
+
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.footer", "content.code.copy", "navigation.tabs.sticky", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  <script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(() => { lightbox.reload() });
+</script></body>
+</html>

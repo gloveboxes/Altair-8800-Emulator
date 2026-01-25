@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>None./</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None"/>
+    </url>
+    <url>
+        <loc>Nonenavigating-the-docs/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonenavigating-the-docs/"/>
+    </url>
+    <url>
+        <loc>None20-fundamentals/05-Introduction/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None20-fundamentals/05-Introduction/"/>
+    </url>
+    <url>
+        <loc>None20-fundamentals/10-deployment-options/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None20-fundamentals/10-deployment-options/"/>
+    </url>
+    <url>
+        <loc>None20-fundamentals/23-Altair-emulator/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None20-fundamentals/23-Altair-emulator/"/>
+    </url>
+    <url>
+        <loc>None20-fundamentals/25-Web-Terminal/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None20-fundamentals/25-Web-Terminal/"/>
+    </url>
+    <url>
+        <loc>None20-fundamentals/30-introduction-cpm/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None20-fundamentals/30-introduction-cpm/"/>
+    </url>
+    <url>
+        <loc>None20-fundamentals/40-Rebooting-the-Altair/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None20-fundamentals/40-Rebooting-the-Altair/"/>
+    </url>
+    <url>
+        <loc>None20-fundamentals/50-Cloud-services/01-Add-cloud-services/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None20-fundamentals/50-Cloud-services/01-Add-cloud-services/"/>
+    </url>
+    <url>
+        <loc>None20-fundamentals/50-Cloud-services/02-Open-Weather-Map/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None20-fundamentals/50-Cloud-services/02-Open-Weather-Map/"/>
+    </url>
+    <url>
+        <loc>None20-fundamentals/50-Cloud-services/Azue-IoT-Central/01-About-IoT-Central/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None20-fundamentals/50-Cloud-services/Azue-IoT-Central/01-About-IoT-Central/"/>
+    </url>
+    <url>
+        <loc>None20-fundamentals/50-Cloud-services/Azue-IoT-Central/02-IoT-Plug-and-Play/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None20-fundamentals/50-Cloud-services/Azue-IoT-Central/02-IoT-Plug-and-Play/"/>
+    </url>
+    <url>
+        <loc>None20-fundamentals/50-Cloud-services/Azue-IoT-Central/04-Create-an-IoT-Central-app/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None20-fundamentals/50-Cloud-services/Azue-IoT-Central/04-Create-an-IoT-Central-app/"/>
+    </url>
+    <url>
+        <loc>None20-fundamentals/50-Cloud-services/Azue-IoT-Central/06-Create-an-IoT-Central-device-key/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None20-fundamentals/50-Cloud-services/Azue-IoT-Central/06-Create-an-IoT-Central-device-key/"/>
+    </url>
+    <url>
+        <loc>None20-fundamentals/50-Cloud-services/Azue-IoT-Central/07-Customize-Azure-IoT-Central/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None20-fundamentals/50-Cloud-services/Azue-IoT-Central/07-Customize-Azure-IoT-Central/"/>
+    </url>
+    <url>
+        <loc>None40-deploy-with-docker/10-introduction/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None40-deploy-with-docker/10-introduction/"/>
+    </url>
+    <url>
+        <loc>None40-deploy-with-docker/100-Create-Docker-images/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None40-deploy-with-docker/100-Create-Docker-images/"/>
+    </url>
+    <url>
+        <loc>None40-deploy-with-docker/15-install-prerequisites/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None40-deploy-with-docker/15-install-prerequisites/"/>
+    </url>
+    <url>
+        <loc>None40-deploy-with-docker/17-start-container/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None40-deploy-with-docker/17-start-container/"/>
+    </url>
+    <url>
+        <loc>None45-build-from-source/01-Introduction/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None45-build-from-source/01-Introduction/"/>
+    </url>
+    <url>
+        <loc>None45-build-from-source/03-Build-from-vs-code/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None45-build-from-source/03-Build-from-vs-code/"/>
+    </url>
+    <url>
+        <loc>None45-build-from-source/04-Compile-from-CLI/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None45-build-from-source/04-Compile-from-CLI/"/>
+    </url>
+    <url>
+        <loc>None45-build-from-source/05-Run-the-emulator/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None45-build-from-source/05-Run-the-emulator/"/>
+    </url>
+    <url>
+        <loc>None45-build-from-source/06-Start-the-web-terminal/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None45-build-from-source/06-Start-the-web-terminal/"/>
+    </url>
+    <url>
+        <loc>None45-build-from-source/Install%20prerequisites/01-Linux-users/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None45-build-from-source/Install%20prerequisites/01-Linux-users/"/>
+    </url>
+    <url>
+        <loc>None45-build-from-source/Install%20prerequisites/02-macOS-users/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None45-build-from-source/Install%20prerequisites/02-macOS-users/"/>
+    </url>
+    <url>
+        <loc>None45-build-from-source/Install%20prerequisites/03-Windows-users/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None45-build-from-source/Install%20prerequisites/03-Windows-users/"/>
+    </url>
+    <url>
+        <loc>None45-build-from-source/Install%20prerequisites/04-Raspberry-Pi-users/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None45-build-from-source/Install%20prerequisites/04-Raspberry-Pi-users/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/01-Introduction/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/01-Introduction/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/03-architecture/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/03-architecture/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/40-Manage-disk-images/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/40-Manage-disk-images/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/01-Deploy-the-Altair/01-Deployment-options/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/01-Deploy-the-Altair/01-Deployment-options/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/01-Deploy-the-Altair/02-Clone-Altair-repo/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/01-Deploy-the-Altair/02-Clone-Altair-repo/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/01-Deploy-the-Altair/03-Deploy-prebuilt/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/01-Deploy-the-Altair/03-Deploy-prebuilt/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/01-Deploy-the-Altair/04-WiFi-configuration/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/01-Deploy-the-Altair/04-WiFi-configuration/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/01-Deploy-the-Altair/05-Create-boot-SD-card/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/01-Deploy-the-Altair/05-Create-boot-SD-card/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/01-Deploy-the-Altair/06-Power-management/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/01-Deploy-the-Altair/06-Power-management/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/01-Deploy-the-Altair/07-Connect-Altair-web-terminal/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/01-Deploy-the-Altair/07-Connect-Altair-web-terminal/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/Cloud-services/01-Add-cloud-services/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/Cloud-services/01-Add-cloud-services/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/Cloud-services/Azue-IoT-Central/01-About-IoT-Central/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/Cloud-services/Azue-IoT-Central/01-About-IoT-Central/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/Cloud-services/Azue-IoT-Central/02-IoT-Plug-and-Play/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/Cloud-services/Azue-IoT-Central/02-IoT-Plug-and-Play/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/Cloud-services/Azue-IoT-Central/04-Create-an-IoT-Central-app/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/Cloud-services/Azue-IoT-Central/04-Create-an-IoT-Central-app/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/Cloud-services/Azue-IoT-Central/05-Azure-Sphere-trust/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/Cloud-services/Azue-IoT-Central/05-Azure-Sphere-trust/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/Cloud-services/Azue-IoT-Central/06-IoT-Central-endpoints/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/Cloud-services/Azue-IoT-Central/06-IoT-Central-endpoints/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/Cloud-services/Azue-IoT-Central/07-Customize-Azure-IoT-Central/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/Cloud-services/Azue-IoT-Central/07-Customize-Azure-IoT-Central/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/Cloud-services/Azue-IoT-Central/08-Configure-network-security/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/Cloud-services/Azue-IoT-Central/08-Configure-network-security/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/Cloud-services/Azue-IoT-Central/10-Deploy-the-Altair-emulator/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/Cloud-services/Azue-IoT-Central/10-Deploy-the-Altair-emulator/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/Cloud-services/Open-Weather-Map/02-Open-Weather-Map/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/Cloud-services/Open-Weather-Map/02-Open-Weather-Map/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/Cloud-services/Open-Weather-Map/03-Add-open-weather-map/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/Cloud-services/Open-Weather-Map/03-Add-open-weather-map/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/Cloud-services/Open-Weather-Map/10-Deploy-the-Altair-emulator/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/Cloud-services/Open-Weather-Map/10-Deploy-the-Altair-emulator/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/Compile-and-deploy/01-Install-developer-tools/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/Compile-and-deploy/01-Install-developer-tools/"/>
+    </url>
+    <url>
+        <loc>None50-azsphere/Compile-and-deploy/02-Deploy-the-Altair-to-Azure-Sphere/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None50-azsphere/Compile-and-deploy/02-Deploy-the-Altair-to-Azure-Sphere/"/>
+    </url>
+    <url>
+        <loc>None60-programming/00-Introduction/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None60-programming/00-Introduction/"/>
+    </url>
+    <url>
+        <loc>None60-programming/00-Manuals/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None60-programming/00-Manuals/"/>
+    </url>
+    <url>
+        <loc>None60-programming/01-Editing-files/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None60-programming/01-Editing-files/"/>
+    </url>
+    <url>
+        <loc>None60-programming/01-Vibe-Coding/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None60-programming/01-Vibe-Coding/"/>
+    </url>
+    <url>
+        <loc>None60-programming/01-i8080-IO-Ports/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None60-programming/01-i8080-IO-Ports/"/>
+    </url>
+    <url>
+        <loc>None60-programming/02-Microsoft-BASIC-programming/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None60-programming/02-Microsoft-BASIC-programming/"/>
+    </url>
+    <url>
+        <loc>None60-programming/03-C-programming/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None60-programming/03-C-programming/"/>
+    </url>
+    <url>
+        <loc>None60-programming/04-Assembly-programming/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None60-programming/04-Assembly-programming/"/>
+    </url>
+    <url>
+        <loc>None60-programming/05-Altair-BASIC-programming/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None60-programming/05-Altair-BASIC-programming/"/>
+    </url>
+    <url>
+        <loc>None60-programming/06-Front-panel-programming/</loc>
+        <lastmod>2026-01-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None60-programming/06-Front-panel-programming/"/>
+    </url>
+</urlset>
