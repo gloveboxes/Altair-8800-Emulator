@@ -95,15 +95,12 @@ int size;
 }
 
 /* ------------------------------------------------------------
- * isnow - Check if string is "NOW" (case insensitive)
+ * isnow - Check if string is "NOW"
  * ------------------------------------------------------------ */
 int isnow(s)
 char *s;
 {
-    if ((s[0] == 'N' || s[0] == 'n') &&
-        (s[1] == 'O' || s[1] == 'o') &&
-        (s[2] == 'W' || s[2] == 'w') &&
-        s[3] == 0)
+    if (s[0] == 'N' && s[1] == 'O' && s[2] == 'W' && s[3] == 0)
         return 1;
     return 0;
 }
